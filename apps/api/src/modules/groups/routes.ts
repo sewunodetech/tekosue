@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { ipKeyGenerator } from "express-rate-limit";
 import { z } from "zod";
 import { computeNoteHash, spendNoteSchema } from "@tekosue/shared";
 import type { RouteContext } from "../../context";
@@ -202,7 +203,8 @@ export function createGroupRoutes(ctx: RouteContext): Router {
       windowMs: MINUTE_MS,
       max: 3,
       // Per person per payment, so one chatty trip can't use up someone else's nudges.
-      keyGenerator: (req) => `${req.auth?.address ?? req.ip}:${req.params.groupId}:${req.params.spendId}`,
+      keyGenerator: (req) =>
+        `${req.auth?.address ?? ipKeyGenerator(req.ip ?? "unknown")}:${req.params.groupId}:${req.params.spendId}`,
       code: "NUDGE_RATE_LIMITED",
       message: "You just nudged your friends, give them a minute",
     }),
