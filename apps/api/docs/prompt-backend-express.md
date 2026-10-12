@@ -2,7 +2,7 @@
 
 > **Historical record.** This is the prompt the team used with an AI coding assistant to generate the first draft of `apps/api` (30 Sep 2026), kept for transparency about AI use. The code has moved on since: web-push became Expo Push, pnpm became npm workspaces, receipts use `receiptHash`, `getGroup` returns a struct, and notifications now come from Envio by default (ADR 0014). For the current behaviour see [`API.md`](./API.md) and [`coverage.md`](./coverage.md).
 
-**How to use:** open Claude Code (or another AI coding tool) at the monorepo root, attach `Tekosoe_-_Dokumen_Produk.md`, then paste everything below the line as the prompt.
+**How to use:** open Claude Code (or another AI coding tool) at the monorepo root, attach `Tekosue_-_Dokumen_Produk.md`, then paste everything below the line as the prompt.
 
 ---
 

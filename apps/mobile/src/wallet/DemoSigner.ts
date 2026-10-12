@@ -5,7 +5,7 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 
 import type { Signer } from './types';
 
-const KEY = 'tekosoe_demo_key';
+const KEY = 'tekosue_demo_key';
 
 async function readKey(): Promise<string | null> {
   try {

@@ -6,9 +6,9 @@ import { Platform } from 'react-native';
  * dan tidak butuh biometrik. Web (mode demo) tidak punya SecureStore → localStorage.
  */
 export const flagKeys = {
-  onboardingSeen: 'tekosoe_onboarding_seen',
+  onboardingSeen: 'tekosue_onboarding_seen',
   /** Per akun: akun lain di HP yang sama tetap dapat tour sendiri. */
-  tourSeen: (address: string) => `tekosoe_tour_seen_${address.toLowerCase()}`,
+  tourSeen: (address: string) => `tekosue_tour_seen_${address.toLowerCase()}`,
 };
 
 export async function getFlag(key: string): Promise<boolean> {

@@ -1,17 +1,17 @@
 {
   "expo": {
     "name": "Tekosue",
-    "slug": "tekosoe",
+    "slug": "tekosue",
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "tekosue",
     "userInterfaceStyle": "light",
     "ios": {
-      "bundleIdentifier": "com.tekosoe.xyz"
+      "bundleIdentifier": "com.tekosue.xyz"
     },
     "android": {
-      "package": "com.tekosoe.xyz",
+      "package": "com.tekosue.xyz",
       "adaptiveIcon": {
         "backgroundColor": "#1f7a6e",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -61,10 +61,10 @@
         "expo-notifications",
         {
           "sounds": [
-            "./assets/sounds/tekosoe.wav"
+            "./assets/sounds/tekosue.wav"
           ],
           "color": "#1f7a6e",
-          "defaultChannel": "tekosoe-chime"
+          "defaultChannel": "tekosue-chime"
         }
       ]
     ],
@@ -73,9 +73,6 @@
       "reactCompiler": true
     },
     "extra": {
-      "eas": {
-        "projectId": "00ebfaf4-670e-4b1a-af47-d1c5798bea85"
-      },
       "router": {}
     },
     "owner": "kyy27"

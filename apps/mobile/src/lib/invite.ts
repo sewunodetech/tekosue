@@ -39,7 +39,7 @@ export async function signInvite(secret: Hex, vault: Address, groupId: string, j
 export const inviteUrl = (code: string) => `https://${env.webDomain}/j/${code}`;
 
 // Pembuat trip menyimpan rahasianya di perangkat supaya bisa membagikan link lagi.
-const storeKey = (groupId: string) => `tekosoe_invite_${groupId}`;
+const storeKey = (groupId: string) => `tekosue_invite_${groupId}`;
 
 export async function saveInviteSecret(groupId: string, secret: Hex): Promise<void> {
   try {

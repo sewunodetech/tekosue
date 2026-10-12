@@ -19,6 +19,6 @@ Testing the Android APK on two phones on 12 Oct showed three problems:
 
 ## Consequences
 
-- Background push needs two one-time steps outside the repo: a Firebase project for package `com.tekosoe.xyz` (its `google-services.json` uploaded as the EAS `GOOGLE_SERVICES_JSON` file variable for `preview`), and its FCM V1 service-account key uploaded in EAS credentials. Then a new APK. The service-account key is never committed (`.gitignore`).
+- Background push needs two one-time steps outside the repo: a Firebase project for package `com.tekosue.xyz` (its `google-services.json` uploaded as the EAS `GOOGLE_SERVICES_JSON` file variable for `preview`), and its FCM V1 service-account key uploaded in EAS credentials. Then a new APK. The service-account key is never committed (`.gitignore`).
 - The api must run with `FEATURE_PUSH=true` for both event pushes and nudges; with it off, nudge answers `{ sent: 0 }`.
 - Tokyo Taxi no longer links to S4 from the card; S4 stays reachable from a failed payment.

@@ -47,7 +47,7 @@ export function createPushService(
         method: "POST",
         headers,
         // Suara khas + channel Android yang dibuat app (apps/mobile/src/services/notifications.ts).
-        body: JSON.stringify(batch.map((message) => ({ ...message, sound: "tekosoe.wav", channelId: "tekosoe-chime" }))),
+        body: JSON.stringify(batch.map((message) => ({ ...message, sound: "tekosue.wav", channelId: "tekosue-chime" }))),
         signal: AbortSignal.timeout(10_000),
       });
       if (!response.ok) return batch.map(() => "failed");

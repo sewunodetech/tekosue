@@ -61,7 +61,7 @@ flowchart LR
 | Needs crypto knowledge | No | No | No | **No, just a passkey** |
 | Someone holds your money | n/a | Yes | Yes | **No.** The contract holds it, your key stays on your phone |
 
-> **Pitch video:** [youtu.be/2ba0CKPJkk8](https://youtu.be/2ba0CKPJkk8) · **Product demo:** [youtu.be/Va0lA2mHJLw](https://youtu.be/Va0lA2mHJLw) · **Website:** [www.tekosue.xyz](https://www.tekosue.xyz) · **Android APK:** [get the app](https://www.tekosue.xyz/get-app) ([EAS build](https://expo.dev/accounts/kyy27/projects/tekosoe/builds/542c7b62-da5e-4809-88f2-d966ed55f47e))
+> **Pitch video:** [youtu.be/2ba0CKPJkk8](https://youtu.be/2ba0CKPJkk8) · **Product demo:** [youtu.be/Va0lA2mHJLw](https://youtu.be/Va0lA2mHJLw) · **Website:** [www.tekosue.xyz](https://www.tekosue.xyz) · **Android APK:** [get the app](https://www.tekosue.xyz/get-app)
 
 ---
 
@@ -153,7 +153,7 @@ flowchart LR
   <img src="docs/assets/screens/debt-new-trip.png" alt="New trip: blocked with You still owe $10.00. Pay it first, then you can start a new trip" width="230" />
 </p>
 
-**Install on Android:** open [www.tekosue.xyz/get-app](https://www.tekosue.xyz/get-app) on your phone, or the [EAS build page](https://expo.dev/accounts/kyy27/projects/tekosoe/builds/542c7b62-da5e-4809-88f2-d966ed55f47e) and scan its QR code. It runs live on Monad testnet; sign in with a passkey (Android needs a screen lock, and Google Password Manager stores the passkey).
+**Install on Android:** open [www.tekosue.xyz/get-app](https://www.tekosue.xyz/get-app) on your phone. It runs live on Monad testnet; sign in with a passkey (Android needs a screen lock, and Google Password Manager stores the passkey).
 
 Run it yourself: see [Getting started](#-getting-started).
 
