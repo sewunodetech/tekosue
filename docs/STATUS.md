@@ -106,7 +106,7 @@ Legend: ✅ done · 🟡 in progress · ⏳ not started
 ### P3 — Alchemy (dropped, ADR 0014)
 
 - [x] Alchemy removed from the landing page "Built with" (6 Oct). Network fees stay covered by our MON drip.
-- [ ] 🟡 Push notifications from **Envio** instead of Alchemy webhooks (6 Oct, ADR 0014): approval requests, payments with your share, declined/disputed payments, settle-up results, and a daily "You still owe $X" reminder (ADR 0013). *Needs `FEATURE_PUSH=true` on the api and a native build (Expo Go on Android has no push). 12 Oct (ADR 0015): Firebase added (`GOOGLE_SERVICES_JSON` + FCM V1 key in EAS project `tekosue`), so the APK registers a push token; S2 "Nudge" goes through `POST /api/groups/:id/spends/:spendId/nudge` to the other members. APK: EAS build `6371e8ee` (`/get-app`). Remaining: verify on two phones with the app closed.*
+- [ ] 🟡 Push notifications from **Envio** instead of Alchemy webhooks (6 Oct, ADR 0014): approval requests, payments with your share, declined/disputed payments, settle-up results, and a daily "You still owe $X" reminder (ADR 0013). *Needs `FEATURE_PUSH=true` on the api and a native build (Expo Go on Android has no push). 12 Oct (ADR 0015): Firebase added (`GOOGLE_SERVICES_JSON` + FCM V1 key in EAS project `tekosue`), so the APK registers a push token; S2 "Nudge" goes through `POST /api/groups/:id/spends/:spendId/nudge` to the other members. APK: EAS build `5e49df1b` (`/get-app`). Remaining: verify on two phones with the app closed.*
 
 ## Deployments
 
