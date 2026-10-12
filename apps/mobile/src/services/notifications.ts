@@ -131,7 +131,9 @@ export async function getExpoPushToken(): Promise<string | null> {
     const hasPermission = await requestNotificationPermission();
     if (!hasPermission) return null;
 
-    const tokenData = await Notifications.getExpoPushTokenAsync();
+    // projectId eksplisit: di build EAS standalone token terikat ke proyek EAS ini (app.json › extra.eas).
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
+    const tokenData = await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : undefined);
     return tokenData.data;
   } catch (err) {
     // Push dari server butuh Firebase (google-services.json) di build Android. Tanpa itu notifikasi
