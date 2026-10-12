@@ -45,3 +45,5 @@ example
 # Kunci service account FCM (diunggah ke EAS credentials) tidak pernah di-commit.
 *firebase-adminsdk*.json
 fcm-service-account*.json
+# Konfigurasi Firebase Android. Di EAS dipasang sebagai variabel file GOOGLE_SERVICES_JSON (ADR 0015).
+/google-services.json
