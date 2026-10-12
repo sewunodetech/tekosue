@@ -19,7 +19,7 @@ import { useTrip } from '@/features/trips/useTrip';
 import { useReceiptKeySync } from '@/features/spends/useReceiptKeySync';
 import { isLive } from '@/lib/env';
 import { money, signed, usd } from '@/lib/money';
-import { shareInvite } from '@/features/trips/shareInvite';
+import { useShareInvite } from '@/features/trips/shareInvite';
 import { MAX_GROUP_MEMBERS } from '@tekosue/shared';
 
 // 07 Trip — canvas "Final UI" › F07Group. Dengan `?state=empty` menjadi S1 Pot is empty (S01PotEmpty),
@@ -199,6 +199,7 @@ function PotCard({ potLabel, settles, balance }: { potLabel: string; settles: st
 
 /** "Who's in": siapa saja di trip (ke layar anggota) + tombol undang selama trip belum settle dan belum penuh. */
 function MembersCard({ trip }: { trip: Trip }) {
+  const shareInvite = useShareInvite();
   const count = trip.members.length;
   const room = MAX_GROUP_MEMBERS - count;
   const canInvite = !trip.settled && room > 0;

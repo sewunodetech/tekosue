@@ -14,7 +14,7 @@ import { colors, fonts } from '@/constants/theme';
 import type { Trip } from '@/data/types';
 import { useTrip } from '@/features/trips/useTrip';
 import { isLive } from '@/lib/env';
-import { shareInvite } from '@/features/trips/shareInvite';
+import { useShareInvite } from '@/features/trips/shareInvite';
 
 // S6 Trip members — canvas "Final UI" › S06Members
 // TODO: Envio MemberJoined + api → profiles. Batas 10 anggota ada di kontrak.
@@ -24,6 +24,7 @@ export default function TripMembersScreen() {
 }
 
 function MembersView({ trip }: { trip: Trip }) {
+  const shareInvite = useShareInvite();
 
   const countries = new Map<string, number>();
   trip.members.forEach((m) => countries.set(m.country, (countries.get(m.country) ?? 0) + 1));
