@@ -10,4 +10,4 @@ export const envioUrl = process.env.NEXT_PUBLIC_ENVIO_GRAPHQL_URL || "https://gr
 /** APK Android terbaru (EAS preview). Diganti tiap build baru. */
 export const androidApkUrl =
   process.env.NEXT_PUBLIC_ANDROID_APK_URL ||
-  "https://expo.dev/artifacts/eas/IyoxJ_enrIuzz6zFYpAy0nxiupiz8Dy8cvlXWMvHUjc.apk";
+  "https://expo.dev/artifacts/eas/QLYL9mIBpDxWv2KQvJ3hkM8OXnCMPS6KcZF2cPA6nXQ.apk";
