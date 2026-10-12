@@ -1,7 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
-import type { Address, Hex } from 'viem';
-import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
+import { keccak256, type Address, type Hex, type LocalAccount } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
 import { inviteDigest, MONAD_TESTNET_CHAIN_ID } from '@tekosue/shared';
 
 import { env } from './env';
@@ -13,8 +13,26 @@ import { env } from './env';
  *
  * Kode undangan = `${groupId}-${secret tanpa 0x}` → tekosue://invite/<kode>, https://<webDomain>/j/<kode> (route app/j/[code]).
  */
-export function newInviteSecret(): { secret: Hex; inviteKey: Address } {
-  const secret = generatePrivateKey();
+/**
+ * Rahasia undangan yang bisa dibuat ulang (ADR 0017): diturunkan dari tanda tangan deterministik akun
+ * pembuat (kunci dari passkey, RFC 6979) atas nama + tanggal akhir trip, yang juga tersimpan on-chain.
+ * Passkey yang sama di HP/instalasi mana pun → rahasia yang sama, jadi "Invite friends" tidak hilang
+ * saat ganti HP. Tanpa kunci akun pembuat, rahasianya tidak bisa ditebak.
+ */
+export async function deriveInviteSecret(
+  account: LocalAccount,
+  vault: Address,
+  trip: { name: string; endsAt: bigint },
+): Promise<{ secret: Hex; inviteKey: Address }> {
+  const message = `Tekosue invite key
+
+${vault.toLowerCase()}
+${MONAD_TESTNET_CHAIN_ID}
+${trip.endsAt}
+${trip.name}
+
+v1`;
+  const secret = keccak256(await account.signMessage({ message }));
   return { secret, inviteKey: privateKeyToAccount(secret).address };
 }
 

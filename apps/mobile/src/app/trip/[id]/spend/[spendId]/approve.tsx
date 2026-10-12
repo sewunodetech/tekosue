@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Teko } from '@/components/teko';
 import { Button } from '@/components/ui/button';
-import { InfoBox, KeyValue, Pill, Screen, Surface } from '@/components/ui/layout';
+import { InfoBox, KeyValue, Screen, Surface } from '@/components/ui/layout';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { Text } from '@/components/ui/text';
 import { combine, QueryState } from '@/components/query-state';
@@ -12,6 +12,7 @@ import type { Spend, Trip } from '@/data/types';
 import { useApproveSpend } from '@/features/spends/useApproveSpend';
 import { useRejectSpend } from '@/features/spends/useRejectSpend';
 import { useSpend } from '@/features/spends/useSpend';
+import { useMarkSpendSeen } from '@/features/spends/useSpendReviews';
 import { useTrip } from '@/features/trips/useTrip';
 import { money } from '@/lib/money';
 import { TxOverlay } from '@/tx/tx-overlay';
@@ -31,8 +32,11 @@ export default function ApprovalScreen() {
 
 function ApprovalView({ trip, spend }: { trip: Trip; spend: Spend }) {
   const { notify } = useNotifications();
-  // Demo multi-HP: layar ini dilihat anggota pertama selain pembayar. Live: user yang login.
-  const reviewer = trip.members.find((m) => m.id !== spend.paidBy.id) ?? trip.members[0];
+  // Live: user yang login ("You"). Demo multi-HP: anggota pertama selain pembayar.
+  const others = trip.members.filter((m) => m.id !== spend.paidBy.id);
+  const reviewer = others.find((m) => m.label === 'You') ?? others[0] ?? trip.members[0];
+  // Status "Seen" di S2 Waiting milik pembayar.
+  useMarkSpendSeen(trip.id, spend.id, spend.paidBy.label !== 'You');
   const share = spend.shares.find((s) => s.member.id === reviewer.id)?.share ?? 0n;
   const othersArray = trip.members.filter((m) => m.id !== spend.paidBy.id).map((m) => m.name);
   const othersText = othersArray.length > 0 ? othersArray.join(' or ') : 'a friend';
@@ -85,7 +89,7 @@ function ApprovalView({ trip, spend }: { trip: Trip; spend: Spend }) {
             />
           </View>
         }>
-        <ScreenHeader action="close" right={<Pill label={`${reviewer.name}'s phone`} weight="bold" color={colors.textMuted} />} />
+        <ScreenHeader action="close" />
 
       <View style={styles.center}>
         <View style={styles.halo}>

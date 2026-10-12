@@ -133,6 +133,16 @@ export const api = {
 
   subscribePush: (account: LocalAccount, expoPushToken: string, platform: 'ios' | 'android') =>
     request('/api/push/subscribe', { method: 'POST', body: { expoPushToken, platform }, auth: account }),
+  /** S2 Waiting: siapa yang sudah membuka permintaan persetujuan (P1, tabel spend_reviews). */
+  spendReviews: async (account: LocalAccount, groupId: string) =>
+    (
+      await request<{ reviews: { spendId: string; member: Address; seenAt: string | null; decisionNote: string | null }[] }>(
+        `/api/groups/${groupId}/spends/reviews`,
+        { auth: account },
+      )
+    ).reviews,
+  markSpendSeen: (account: LocalAccount, groupId: string, spendId: string) =>
+    request(`/api/groups/${groupId}/spends/${spendId}/review`, { method: 'PUT', body: { seen: true }, auth: account }),
   /** S2 Waiting › Nudge: api mengirim push ke anggota lain (bukan ke HP pembayar). */
   nudgeSpend: (account: LocalAccount, groupId: string, spendId: string) =>
     request<{ recipients: number; sent: number }>(`/api/groups/${groupId}/spends/${spendId}/nudge`, {
