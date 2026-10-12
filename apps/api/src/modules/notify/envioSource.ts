@@ -21,8 +21,19 @@ export async function eventFromActivity(deps: AppDeps, row: ActivityRow): Promis
   const base = { groupId: BigInt(row.groupId) };
   const amount = row.amount ?? 0n;
   switch (row.type) {
-    case "SpendRequested":
-      return { eventName: row.type, args: { ...base, spendId: row.spendId, spender: row.actor, amount } };
+    case "SpendRequested": {
+      const shares = row.spendId === null ? [] : await deps.envio.spendShares(row.groupId, row.spendId);
+      return {
+        eventName: row.type,
+        args: { ...base, spendId: row.spendId, spender: row.actor, amount, participants: shares.map((s) => s.participant) },
+      };
+    }
+    case "Deposited":
+      return { eventName: row.type, args: { ...base, member: row.actor, amount } };
+    case "MemberJoined":
+      return { eventName: row.type, args: { ...base, member: row.actor } };
+    case "ReceiptAttached":
+      return { eventName: row.type, args: { ...base, spendId: row.spendId, by: row.actor } };
     case "SpendExecuted": {
       const shares = row.spendId === null ? [] : await deps.envio.spendShares(row.groupId, row.spendId);
       return {

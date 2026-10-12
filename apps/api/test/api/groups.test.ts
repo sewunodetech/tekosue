@@ -168,6 +168,21 @@ describe("nudge", () => {
     });
   });
 
+  it("nudges only the people sharing the payment", async () => {
+    const { app, repos, push, chain, envio } = appWithPendingSpend();
+    chain.membersOf = async () => [TEST_ADDRESS, OTHER_ADDRESS, THIRD_ADDRESS] as never;
+    envio.shares.set("7-2", [
+      { participant: TEST_ADDRESS, share: 45_000_000n },
+      { participant: THIRD_ADDRESS, share: 45_000_000n },
+    ]);
+    await subscribeBoth(repos);
+    await repos.pushSubs.upsert({ address: THIRD_ADDRESS, expoPushToken: "ExponentPushToken[thirdthirdthirdthird1]", platform: "android" });
+
+    const res = await request(app).post("/api/groups/7/spends/2/nudge").set(await authHeader(TEST_ADDRESS));
+    expect(res.body).toEqual({ recipients: 1, sent: 1 });
+    expect(push.sent.map((m) => m.to)).toEqual(["ExponentPushToken[thirdthirdthirdthird1]"]);
+  });
+
   it("only lets the spender nudge, and only while the payment is pending", async () => {
     const pending = appWithPendingSpend();
     const notSpender = await request(pending.app)
