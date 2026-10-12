@@ -23,7 +23,8 @@ ADR 0011 renamed everything users see but kept the old spelling in native identi
 
 ## Consequences
 
-- **Before the first build of the new project**, reuse the signing key so passkeys and App Links keep working with the fingerprints already published: download the keystore from the old project (`eas credentials` → Android → `com.tekosoe.xyz` → Keystore → Download) and upload it to the new project for `com.tekosue.xyz`. With a new keystore instead, its SHA-256 must be added to `assetlinks.json` before passkey sign-in works.
+- **Signing key:** the new EAS project generated its own keystore on the first build (12 Oct, build `6371e8ee`). Its SHA-256 `07:61:F5:…:ED:4F` is the only fingerprint for `com.tekosue.xyz` in `assetlinks.json`; the old package keeps its old fingerprints. Passkey sign-in and App Links in the new APK work once that file is live on `www.tekosue.xyz`.
+- EAS environment variables were copied from the old project (`preview`: the 11 `EXPO_PUBLIC_*` values) and `GOOGLE_SERVICES_JSON` was added as a secret file; the FCM V1 key is uploaded in the new project's credentials.
 - Firebase (ADR 0015) is registered for `com.tekosue.xyz`.
-- The EAS build link in the submission and on `/get-app` (`NEXT_PUBLIC_ANDROID_APK_URL`) must point at the first build of the new project. The README now links only to `/get-app`.
+- `/get-app` now points at the first APK of the new project; the EAS build link in the submission must be updated by hand. The README links only to `/get-app`.
 - The iOS AASA still uses the `TEAMID` placeholder (unchanged from ADR 0011); only the bundle id changed.
