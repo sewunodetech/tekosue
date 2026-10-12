@@ -269,7 +269,7 @@ flowchart LR
 
     C["✅ <b>GroupVault</b> deployed + verified<br/>signed invites, permit flows, approvals,<br/>disputes, receipts, settle-up, debts & credits,<br/>unpaid debt blocks new trips<br/><i>28 Foundry tests incl. fuzzed invariants</i>"]:::done
     I["✅ <b>Envio indexer</b> hosted<br/>13 event handlers (12 GroupVault<br/>events + AUSD transfers),<br/>enough to rebuild every invoice"]:::done
-    A["✅ <b>API</b> deployed<br/>settle scheduler, MON drip, SIWE login,<br/>labels bound to on-chain hashes, invoices,<br/>push + daily debt reminders from Envio,<br/>Nudge for pending approvals<br/><i>58 tests</i>"]:::done
+    A["✅ <b>API</b> deployed<br/>settle scheduler, MON drip, SIWE login,<br/>labels bound to on-chain hashes, invoices,<br/>push + daily debt reminders from Envio,<br/>Nudge for pending approvals<br/><i>61 tests</i>"]:::done
     M["✅ <b>Mobile app</b> (Android APK)<br/>Mera passkey sign-up + signing on real phones,<br/>every screen live on testnet, invoices with PDF + QR,<br/>invite deep links, feed, encrypted receipts,<br/>card history, background push (Firebase),<br/>'You still owe' guard"]:::done
     W["✅ <b>Website</b> www.tekosue.xyz<br/>landing, download page, live invite pages,<br/>invoice verification, passkey domain files"]:::done
     P["🟠 <b>In progress</b><br/>iPhone build (needs Apple Team ID)"]:::wip
