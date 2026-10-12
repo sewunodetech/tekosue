@@ -7,7 +7,16 @@ import { x25519 } from '@noble/curves/ed25519';
 import { hkdf } from '@noble/hashes/hkdf';
 import { sha256 } from '@noble/hashes/sha2';
 
-import { decryptReceipt, encryptReceipt, newTripKey, unwrapTripKey, wrapTripKey } from './receipt-crypto.ts';
+import {
+  decryptReceipt,
+  encryptReceipt,
+  isEnvelope,
+  newTripKey,
+  openEnvelope,
+  sealReceiptForMembers,
+  unwrapTripKey,
+  wrapTripKey,
+} from './receipt-crypto.ts';
 
 const b64 = (bytes: Uint8Array) => Buffer.from(bytes).toString('base64');
 
@@ -40,4 +49,23 @@ test('trip keys wrapped before the rebrand still unwrap (legacy HKDF info)', () 
   const nonce = randomBytes(12);
   const legacy = b64(new Uint8Array([...x25519.getPublicKey(ephemeral), ...nonce, ...gcm(kek, nonce).encrypt(tripKey)]));
   assert.deepEqual(unwrapTripKey(legacy, recipient), tripKey);
+});
+
+test('a receipt sealed without the trip key opens for every listed member, and only for them', () => {
+  const people = ['0x52ad2190000fcbaedf96b221adb9d8ad861411cd', '0xc16bd1a5cbd7e8f204339a20615cd1c27954ec57', '0xe0d9cd5ff6bc89247b4cb71a281a7675d01d592a'].map(
+    (address) => {
+      const privateKey = x25519.utils.randomPrivateKey();
+      return { address, privateKey, publicKey: x25519.getPublicKey(privateKey) };
+    },
+  );
+  const plain = new TextEncoder().encode('lunch receipt');
+  const sealed = sealReceiptForMembers(plain, '2', '4', people);
+
+  assert.equal(isEnvelope(sealed), true);
+  assert.equal(isEnvelope(encryptReceipt(newTripKey(), plain, '2', '4')), false);
+  for (const p of people) assert.deepEqual(openEnvelope(sealed, '2', '4', p.address.toUpperCase().replace('0X', '0x'), p.privateKey), plain);
+
+  const outsider = x25519.utils.randomPrivateKey();
+  assert.throws(() => openEnvelope(sealed, '2', '4', '0x0000000000000000000000000000000000000001', outsider));
+  assert.throws(() => openEnvelope(sealed, '2', '5', people[0]!.address, people[0]!.privateKey), 'bound to its payment');
 });

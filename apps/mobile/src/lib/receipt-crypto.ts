@@ -3,7 +3,7 @@ import { randomBytes } from '@noble/ciphers/webcrypto';
 import { x25519 } from '@noble/curves/ed25519';
 import { hkdf } from '@noble/hashes/hkdf';
 import { sha256 } from '@noble/hashes/sha2';
-import { hexToBytes, keccak256, type Hex, type LocalAccount } from 'viem';
+import { bytesToHex, hexToBytes, keccak256, type Hex, type LocalAccount } from 'viem';
 
 /**
  * Kriptografi struk (M7, ADR 0008). Semua terjadi di HP; server hanya pernah melihat ciphertext.
@@ -92,6 +92,50 @@ function withLegacyFallback<L, T>(open: (label: L) => T, labels: L[]): T {
     }
   }
   throw lastError;
+}
+
+// ---------------------------------------------------------------- amplop (ADR 0018)
+
+/**
+ * Struk dari HP yang belum memegang kunci trip (mis. anggota baru): kunci acak per struk, dibungkus untuk setiap
+ * anggota yang kunci publiknya terdaftar. Tidak perlu menunggu teman membagikan kunci trip.
+ * Format: "TKSE1" ‖ jumlah(1) ‖ [alamat(20) ‖ bungkus(92)]… ‖ nonce(12) ‖ AES-256-GCM(isi).
+ */
+const ENVELOPE_MAGIC = new TextEncoder().encode('TKSE1');
+const WRAP_BYTES = 32 + NONCE_BYTES + 32 + 16;
+
+export function isEnvelope(sealed: Uint8Array): boolean {
+  return sealed.length > ENVELOPE_MAGIC.length && ENVELOPE_MAGIC.every((b, i) => sealed[i] === b);
+}
+
+export function sealReceiptForMembers(
+  plain: Uint8Array,
+  tripId: string,
+  spendId: string,
+  recipients: { address: string; publicKey: Uint8Array }[],
+): Uint8Array {
+  if (recipients.length === 0 || recipients.length > 255) throw new Error('No one in this trip can open receipts yet.');
+  const receiptKey = newTripKey();
+  const entries = recipients.map((r) => concat(hexToBytes(r.address.toLowerCase() as Hex), fromBase64(wrapTripKey(receiptKey, r.publicKey))));
+  const nonce = randomBytes(NONCE_BYTES);
+  const body = gcm(receiptKey, nonce, receiptAad(tripId, spendId)).encrypt(plain);
+  return concat(ENVELOPE_MAGIC, new Uint8Array([recipients.length]), ...entries, nonce, body);
+}
+
+export function openEnvelope(sealed: Uint8Array, tripId: string, spendId: string, me: string, privateKey: Uint8Array): Uint8Array {
+  const count = sealed[ENVELOPE_MAGIC.length]!;
+  let offset = ENVELOPE_MAGIC.length + 1;
+  const mine = me.toLowerCase();
+  let receiptKey: Uint8Array | null = null;
+  for (let i = 0; i < count; i++) {
+    const address = bytesToHex(sealed.slice(offset, offset + 20));
+    const wrap = sealed.slice(offset + 20, offset + 20 + WRAP_BYTES);
+    if (address === mine) receiptKey = unwrapTripKey(toBase64(wrap), privateKey);
+    offset += 20 + WRAP_BYTES;
+  }
+  if (!receiptKey) throw new Error('This receipt was added before this phone joined the trip, so it can only be opened by the others.');
+  const nonce = sealed.slice(offset, offset + NONCE_BYTES);
+  return gcm(receiptKey, nonce, receiptAad(tripId, spendId)).decrypt(sealed.slice(offset + NONCE_BYTES));
 }
 
 /** Sidik jari yang dicatat lewat `attachReceipt` dan diperiksa api saat konfirmasi unggahan. */
