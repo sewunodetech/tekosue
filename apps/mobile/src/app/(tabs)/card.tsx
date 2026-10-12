@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Logo } from '@/components/logo';
 import { Teko } from '@/components/teko';
+import { useReceiptSaving } from '@/features/spends/receipt-uploads';
 import { ActivityRow } from '@/components/trip-rows';
 import { Button } from '@/components/ui/button';
 import { Pill, Screen, SectionLabel } from '@/components/ui/layout';
@@ -54,6 +55,7 @@ function NoTripCard() {
 }
 
 function CardView({ trip }: { trip: Trip }) {
+  const isSavingReceipt = useReceiptSaving(trip.id);
   return (
     <Screen
       tab
@@ -110,6 +112,7 @@ function CardView({ trip }: { trip: Trip }) {
             <ActivityRow
               key={spend.id}
               spend={spend}
+              savingReceipt={isSavingReceipt(spend.id)}
               meta={`${spend.paidBy.label} · ${spend.status === 'pending' ? 'waiting for a yes' : spend.when}`}
               href={spendHref(trip, spend)}
             />

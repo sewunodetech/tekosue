@@ -11,6 +11,7 @@ import { combine, QueryState } from '@/components/query-state';
 import { colors, fonts, palette, radius } from '@/constants/theme';
 import type { Spend, Trip } from '@/data/types';
 import { demoReceipt } from '@/features/spends/demo-receipts';
+import { useReceiptSaving } from '@/features/spends/receipt-uploads';
 import { useDisputeSpend } from '@/features/spends/useDisputeSpend';
 import { useSpend } from '@/features/spends/useSpend';
 import { useTrip } from '@/features/trips/useTrip';
@@ -34,6 +35,9 @@ function PaymentDetailsView({ trip, spend }: { trip: Trip; spend: Spend }) {
   const myShare = spend.shares.find((s) => s.member.label === 'You')?.share ?? 0n;
   const iPaid = spend.paidBy.label === 'You';
   const hasReceipt = spend.hasReceipt || (!isLive && Boolean(demoReceipt(trip.id, spend.id)));
+  // Struk dari 09 Pay masih disimpan di latar belakang: jangan tawarkan "Add" (struk ganda).
+  const isSavingReceipt = useReceiptSaving(trip.id);
+  const savingReceipt = !hasReceipt && isSavingReceipt(spend.id);
 
   const disputeSpend = useDisputeSpend(trip.id, spend.id);
   const disputeTx = useTx(disputeSpend.mutateAsync, {
@@ -94,12 +98,14 @@ function PaymentDetailsView({ trip, spend }: { trip: Trip; spend: Spend }) {
           <Text variant="small" color={colors.textMuted} style={{ fontFamily: fonts.body }}>
             {hasReceipt
               ? 'Encrypted · only the group can open it'
-              : iPaid
+              : savingReceipt
+                ? 'Saving your receipt…'
+                : iPaid
                 ? 'Add a photo so everyone can check it'
                 : 'No receipt added yet'}
           </Text>
         </View>
-        {(hasReceipt || iPaid) && (
+        {(hasReceipt || (iPaid && !savingReceipt)) && (
           <Link
             href={hasReceipt ? `/trip/${trip.id}/spend/${spend.id}/receipt` : `/trip/${trip.id}/add-receipt?spendId=${spend.id}`}
             asChild>
