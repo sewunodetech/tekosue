@@ -10,9 +10,10 @@ import { Screen, Surface } from '@/components/ui/layout';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { Text } from '@/components/ui/text';
 import { combine, QueryState } from '@/components/query-state';
-import { colors, fonts, palette, radius } from '@/constants/theme';
+import { colors, fonts, radius } from '@/constants/theme';
 import type { Spend, Trip } from '@/data/types';
 import { useNudgeSpend } from '@/features/spends/useNudgeSpend';
+import { useSeenBy } from '@/features/spends/useSpendReviews';
 import { useSpend } from '@/features/spends/useSpend';
 import { useTrip } from '@/features/trips/useTrip';
 import { money } from '@/lib/money';
@@ -20,7 +21,7 @@ import { useNotifications } from '@/providers/notification-provider';
 import { isLive } from '@/lib/env';
 
 // S2 Waiting for approval — canvas "Final UI" › S02Waiting
-// TODO: Envio SpendRequested + api → spend_reviews (Seen).
+// Daftar = peserta pembayaran selain pembayar (yang ikut menanggung); "Seen" dari api spend_reviews.
 // "Nudge" → api mengirim push ke anggota lain; HP ini hanya menampilkan banner konfirmasi.
 export default function WaitingForApprovalScreen() {
   const { id, spendId } = useLocalSearchParams<{ id: string; spendId: string }>();
@@ -34,14 +35,14 @@ export default function WaitingForApprovalScreen() {
 function WaitingView({ trip, spend }: { trip: Trip; spend: Spend }) {
   const { showInApp } = useNotifications();
   const nudge = useNudgeSpend(trip.id, spend.id);
-  // Yang bisa menyetujui = anggota selain pembayar. Status "Seen" masih demo (TODO: spend_reviews).
+  // Kontrak membolehkan anggota mana pun selain pembayar menyetujui; yang ditanya = yang ikut menanggung.
+  // Kalau pembayar satu-satunya peserta, semua anggota lain yang ditanya (sama dengan api Nudge).
   const others = trip.members.filter((m) => m.id !== spend.paidBy?.id);
-
-  // Fallback jika trip hanya berisi 1 orang (demo/tester)
-  const defaultMember1 = { id: 'dummy1', name: 'Friend', tint: palette.sky, label: 'Friend' } as any;
-
-  const approvers = others.length > 0 ? others : [defaultMember1];
-  const nudgeNames = approvers.map(a => a.name).slice(0, 2).join(' and ');
+  const sharing = others.filter((m) => spend.shares.some((s) => s.member.id === m.id));
+  const approvers = sharing.length > 0 ? sharing : others;
+  const seenBy = useSeenBy(trip.id, spend.id);
+  const nudgeNames =
+    approvers.length <= 2 ? approvers.map((a) => a.name).join(' and ') : `${approvers[0]!.name} and ${approvers.length - 1} others`;
 
   return (
     <Screen
@@ -95,11 +96,11 @@ function WaitingView({ trip, spend }: { trip: Trip; spend: Spend }) {
           </Text>
         </View>
 
-        {approvers.map((m, i) => (
+        {approvers.map((m) => (
           <View key={m.id} style={styles.row}>
             <Avatar name={m.name} tint={m.tint} size={32} />
             <Text style={styles.name}>{m.name}</Text>
-            {i === 0 ? (
+            {seenBy.has(m.id.toLowerCase()) ? (
               <View style={styles.seen}>
                 <PulseDot color={colors.accent} size={8} />
                 <Text variant="small" color={colors.notice}>

@@ -14,7 +14,7 @@ import {
 } from '@/lib/chain';
 import { env } from '@/lib/env';
 import { waitForIndexer } from '@/lib/envio';
-import { decodeInviteCode, encodeInviteCode, newInviteSecret, saveInviteSecret, signInvite } from '@/lib/invite';
+import { decodeInviteCode, deriveInviteSecret, encodeInviteCode, saveInviteSecret, signInvite } from '@/lib/invite';
 import { usd } from '@/lib/money';
 
 /**
@@ -74,7 +74,8 @@ export async function createTrip(
   const endsAt = BigInt(Math.floor(input.endsAt.getTime() / 1000));
   if (endsAt * 1000n <= BigInt(Date.now())) throw new Error('The end date must be in the future.');
 
-  const { secret, inviteKey } = newInviteSecret();
+  // Diturunkan dari passkey (ADR 0017): link undangan bisa dibuat ulang di HP lain.
+  const { secret, inviteKey } = await deriveInviteSecret(account, vaultAddress(), { name: input.name, endsAt });
   const receipt = await indexed(
     await writeVault(account, 'createGroup', [
       input.name,
@@ -93,6 +94,25 @@ export async function createTrip(
   // Label saja — kalau api sedang tidak bisa, trip tetap ada (nama juga tersimpan on-chain).
   await api.saveGroupMeta(account, groupId, input.name).catch(() => undefined);
   return { id: groupId, inviteCode: encodeInviteCode(groupId, secret) };
+}
+
+/**
+ * Link undangan untuk pembuat trip di HP/instalasi yang tidak menyimpan rahasianya (ADR 0017).
+ * `notCreator` → hanya pembuat yang bisa membagikan link; `null` → trip dibuat sebelum rahasia
+ * diturunkan dari passkey, jadi link hanya ada di HP/app tempat trip dibuat.
+ */
+export async function recoverInviteCode(account: LocalAccount, tripId: string): Promise<string | 'notCreator' | null> {
+  const group = await publicClient.readContract({
+    address: vaultAddress(),
+    abi: groupVaultAbi,
+    functionName: 'getGroup',
+    args: [BigInt(tripId)],
+  });
+  if (group.creator.toLowerCase() !== account.address.toLowerCase()) return 'notCreator';
+  const { secret, inviteKey } = await deriveInviteSecret(account, vaultAddress(), { name: group.name, endsAt: BigInt(group.endsAt) });
+  if (inviteKey.toLowerCase() !== group.inviteKey.toLowerCase()) return null;
+  await saveInviteSecret(tripId, secret);
+  return encodeInviteCode(tripId, secret);
 }
 
 /**

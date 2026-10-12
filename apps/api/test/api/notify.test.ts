@@ -5,6 +5,7 @@ import { makeApp, OTHER_ADDRESS, TEST_ADDRESS, THIRD_ADDRESS } from "../helpers/
 
 const TOKEN_A = "ExponentPushToken[aaaaaaaaaaaaaaaaaaaaaa]";
 const TOKEN_B = "ExponentPushToken[bbbbbbbbbbbbbbbbbbbbbb]";
+const TOKEN_C = "ExponentPushToken[cccccccccccccccccccccc]";
 const TX = `0x${"ab".repeat(32)}`;
 const CRYPTO_WORDS = /\b(wallets?|gas|seed phrases?|blockchains?|tokens?|hash(?:es)?|transactions?)\b/i;
 
@@ -103,6 +104,44 @@ describe("Envio notification source", () => {
 
     await runNotifySweep(deps, 1_000);
     expect(calls).toEqual([[7, OTHER_ADDRESS, 45_000_000n]]);
+  });
+
+  it("tells everyone else in the trip about deposits, joins, receipts and payments they are not part of", async () => {
+    const { deps, envio, push } = await setup();
+    await runNotifySweep(deps, 900);
+    envio.shares.set("7-2", [{ participant: TEST_ADDRESS, share: 150_000_000n }]);
+    envio.activities.push(
+      activity({ id: `${TX}-1`, type: "Deposited", spendId: null, amount: 20_000_000n }),
+      activity({ id: `${TX}-2`, type: "MemberJoined", spendId: null, amount: 50_000_000n }),
+      activity({ id: `${TX}-3`, type: "ReceiptAttached", amount: null }),
+      activity({ id: `${TX}-4`, type: "SpendExecuted" }),
+    );
+
+    await runNotifySweep(deps, 1_000);
+    expect(push.sent.map((m) => [m.to, m.body])).toEqual([
+      [TOKEN_B, "Jack put $20.00 in the pot."],
+      [TOKEN_B, "Jack joined the trip."],
+      [TOKEN_B, "Jack added a receipt to a payment."],
+      [TOKEN_B, "Jack paid $150.00 from the pot."],
+    ]);
+  });
+
+  it("asks only the people sharing a payment to approve it, and tells the rest", async () => {
+    const built = await setup();
+    built.chain.membersOf = async () => [TEST_ADDRESS, OTHER_ADDRESS, THIRD_ADDRESS] as never;
+    await built.repos.pushSubs.upsert({ address: THIRD_ADDRESS, expoPushToken: TOKEN_C, platform: "android" });
+    await runNotifySweep(built.deps, 900);
+    built.envio.shares.set("7-2", [
+      { participant: TEST_ADDRESS, share: 75_000_000n },
+      { participant: OTHER_ADDRESS, share: 75_000_000n },
+    ]);
+    built.envio.activities.push(activity({}));
+
+    await runNotifySweep(built.deps, 1_000);
+    expect(built.push.sent.map((m) => [m.to, m.body])).toEqual([
+      [TOKEN_B, "Jack wants to pay $150.00 from the pot. Tap to approve."],
+      [TOKEN_C, "Jack asked to pay $150.00 from the pot. Waiting for a yes."],
+    ]);
   });
 
   it("never uses crypto words in any notification", async () => {

@@ -69,6 +69,11 @@ export function displayName(names: Map<string, string>, address: string): string
   return names.get(address) ?? SOMEONE;
 }
 
+/** Every member of the trip except `who` (lowercase). */
+async function otherMembers(ctx: AppDeps, groupId: bigint, who: string): Promise<string[]> {
+  return addresses(await ctx.chain.membersOf(groupId)).filter((member) => member !== who);
+}
+
 /** Build the per-recipient bodies for one event. Returns null when the event does not notify. */
 export async function buildNotifyPlan(ctx: AppDeps, event: DecodedGroupEvent): Promise<NotifyPlan | null> {
   const groupId = big(event.args.groupId);
@@ -81,12 +86,21 @@ export async function buildNotifyPlan(ctx: AppDeps, event: DecodedGroupEvent): P
 
   switch (event.eventName) {
     case "SpendRequested": {
+      // Everyone else hears about it; the people sharing the cost are asked to approve (any member may).
       const spender = addr(event.args.spender);
       const amount = big(event.args.amount);
-      const members = addresses(await ctx.chain.membersOf(groupId)).filter((member) => member !== spender);
-      const names = await loadNames(ctx, [...members, spender]);
-      const body = `${displayName(names, spender)} wants to pay ${formatAusd(amount)} from the pot. Tap to approve.`;
-      for (const member of members) bodies.set(member, body);
+      const others = await otherMembers(ctx, groupId, spender);
+      const sharing = new Set(addresses(event.args.participants).filter((member) => member !== spender));
+      const names = await loadNames(ctx, [spender]);
+      const who = displayName(names, spender);
+      for (const member of others) {
+        bodies.set(
+          member,
+          sharing.size === 0 || sharing.has(member)
+            ? `${who} wants to pay ${formatAusd(amount)} from the pot. Tap to approve.`
+            : `${who} asked to pay ${formatAusd(amount)} from the pot. Waiting for a yes.`,
+        );
+      }
       if (spendId >= 0n) {
         tagParts.push(spendId.toString());
         url = `${tripUrl}/spend/${spendId}/approve`;
@@ -101,18 +115,16 @@ export async function buildNotifyPlan(ctx: AppDeps, event: DecodedGroupEvent): P
       const shares = Array.isArray(event.args.shares) ? event.args.shares : [];
       const names = await loadNames(ctx, [spender]);
       const who = displayName(names, spender);
-      participants
-        .filter((member) => member !== spender)
-        .forEach((member) => {
-          const index = participants.indexOf(member);
-          const share = participants.length === shares.length ? big(shares[index]) : null;
-          bodies.set(
-            member,
-            share === null
-              ? `${who} paid ${formatAusd(amount)} from the pot.`
-              : `${who} paid ${formatAusd(amount)} from the pot. Your share is ${formatAusd(share)}.`,
-          );
-        });
+      for (const member of await otherMembers(ctx, groupId, spender)) {
+        const index = participants.indexOf(member);
+        const share = index >= 0 && participants.length === shares.length ? big(shares[index]) : null;
+        bodies.set(
+          member,
+          share === null
+            ? `${who} paid ${formatAusd(amount)} from the pot.`
+            : `${who} paid ${formatAusd(amount)} from the pot. Your share is ${formatAusd(share)}.`,
+        );
+      }
       if (spendId >= 0n) {
         tagParts.push(spendId.toString());
         url = `${tripUrl}/spend/${spendId}`;
@@ -122,21 +134,68 @@ export async function buildNotifyPlan(ctx: AppDeps, event: DecodedGroupEvent): P
 
     case "SpendRejected": {
       const spend = await ctx.chain.getSpend(groupId, big(event.args.spendId));
-      bodies.set(addr(spend.spender), `Your payment of ${formatAusd(spend.amount)} was declined.`);
+      const spender = addr(spend.spender);
+      const by = addr(event.args.by);
+      const names = await loadNames(ctx, [spender, by]);
+      for (const member of await otherMembers(ctx, groupId, by)) {
+        bodies.set(
+          member,
+          member === spender
+            ? `Your payment of ${formatAusd(spend.amount)} was declined.`
+            : `${displayName(names, by)} declined ${displayName(names, spender)}'s payment of ${formatAusd(spend.amount)}.`,
+        );
+      }
       tagParts.push(big(event.args.spendId).toString());
       break;
     }
 
     case "ShareDisputed": {
       const spend = await ctx.chain.getSpend(groupId, big(event.args.spendId));
+      const spender = addr(spend.spender);
       const participant = addr(event.args.participant);
-      const names = await loadNames(ctx, [participant]);
-      bodies.set(
-        addr(spend.spender),
-        `${displayName(names, participant)} wasn't part of a payment, so their ${formatAusd(big(event.args.share))} moved to you.`,
-      );
+      const names = await loadNames(ctx, [participant, spender]);
+      const share = formatAusd(big(event.args.share));
+      for (const member of await otherMembers(ctx, groupId, participant)) {
+        bodies.set(
+          member,
+          member === spender
+            ? `${displayName(names, participant)} wasn't part of a payment, so their ${share} moved to you.`
+            : `${displayName(names, participant)} wasn't part of ${displayName(names, spender)}'s payment, so their ${share} moved to ${displayName(names, spender)}.`,
+        );
+      }
       tagParts.push(big(event.args.spendId).toString());
       url = `${tripUrl}/spend/${big(event.args.spendId)}`;
+      break;
+    }
+
+    case "Deposited": {
+      const member = addr(event.args.member);
+      const names = await loadNames(ctx, [member]);
+      const body = `${displayName(names, member)} put ${formatAusd(big(event.args.amount))} in the pot.`;
+      for (const other of await otherMembers(ctx, groupId, member)) bodies.set(other, body);
+      tagParts.push(member);
+      break;
+    }
+
+    case "MemberJoined": {
+      const member = addr(event.args.member);
+      const names = await loadNames(ctx, [member]);
+      const body = `${displayName(names, member)} joined the trip.`;
+      for (const other of await otherMembers(ctx, groupId, member)) bodies.set(other, body);
+      tagParts.push(member);
+      url = `${tripUrl}/members`;
+      break;
+    }
+
+    case "ReceiptAttached": {
+      const by = addr(event.args.by);
+      const names = await loadNames(ctx, [by]);
+      const body = `${displayName(names, by)} added a receipt to a payment.`;
+      for (const other of await otherMembers(ctx, groupId, by)) bodies.set(other, body);
+      if (spendId >= 0n) {
+        tagParts.push(spendId.toString());
+        url = `${tripUrl}/spend/${spendId}`;
+      }
       break;
     }
 
@@ -194,10 +253,14 @@ export async function buildNudgePlan(
 ): Promise<NotifyPlan> {
   const from = addr(spender);
   const trip = await resolveTripName(ctx, groupId);
-  const members = addresses(await ctx.chain.membersOf(groupId)).filter((member) => member !== from);
+  const others = addresses(await ctx.chain.membersOf(groupId)).filter((member) => member !== from);
+  // Ask the people sharing this payment; if the spender is the only one sharing it, ask everyone else.
+  const shares = await ctx.envio.spendShares(groupId.toString(), spendId).catch(() => []);
+  const sharing = others.filter((member) => shares.some((s) => s.participant.toLowerCase() === member));
+  const recipients = sharing.length > 0 ? sharing : others;
   const names = await loadNames(ctx, [from]);
   const body = `${displayName(names, from)} is still waiting for a yes on ${formatAusd(amount)} from the pot. Tap to approve.`;
-  const bodies = new Map(members.map((member) => [member, body] as const));
+  const bodies = new Map(recipients.map((member) => [member, body] as const));
   return {
     groupId,
     title: trip,
