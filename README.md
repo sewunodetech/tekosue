@@ -40,10 +40,15 @@
 
 **Tekosue.** One pot for the whole trip:
 
-1. **Sign in with a passkey:** Face ID, fingerprint or the phone's PIN. No seed phrase, no wallet app, no gas token.
-2. **Everyone puts dollars in** (AUSD), from any country.
-3. **Anyone pays from the pot.** Every payment is recorded automatically. Big payments need a friend's approval, and anyone left out of a payment can dispute their share.
-4. **On the trip's end date the pot settles itself.** The contract works out each person's share, refunds whoever put in too much, and collects the rest within the limit each person agreed to. Everyone gets an invoice: *Paid*, *Refunded* or *Due*.
+```mermaid
+flowchart LR
+    A["🔑 <b>1. Sign in with a passkey</b><br/>Face ID, fingerprint or PIN<br/>no seed phrase, no gas token"]
+    B["💵 <b>2. Everyone puts dollars in</b><br/>AUSD, from any country"]
+    C["🧾 <b>3. Anyone pays from the pot</b><br/>recorded automatically<br/>big payments need a friend's OK<br/>left-out members can dispute"]
+    D["✅ <b>4. The pot settles itself</b><br/>on the trip's end date:<br/>refund overpayers, collect the rest<br/>within each safety net"]
+    E["📄 <b>Invoice for everyone</b><br/>Paid · Refunded · Due"]
+    A --> B --> C --> D --> E
+```
 
 **Why it only works on-chain.** The money and the settle-up logic live in a contract, not with us. No one holds the funds, settlement is final in seconds, and everyone uses the same digital dollar, so there's no FX loss between friends. Monad makes this cheap and fast enough to feel like a normal payment app.
 
@@ -56,7 +61,7 @@
 | Needs crypto knowledge | No | No | No | **No, just a passkey** |
 | Someone holds your money | n/a | Yes | Yes | **No.** The contract holds it, your key stays on your phone |
 
-> **Demo video:** _link coming 11 Oct_ · **Website:** [www.tekosue.xyz](https://www.tekosue.xyz) · **Android APK:** [get the app](https://www.tekosue.xyz/get-app) ([EAS build](https://expo.dev/accounts/kyy27/projects/tekosoe/builds/542c7b62-da5e-4809-88f2-d966ed55f47e))
+> **Pitch video:** [youtu.be/2ba0CKPJkk8](https://youtu.be/2ba0CKPJkk8) · **Product demo:** [youtu.be/Va0lA2mHJLw](https://youtu.be/Va0lA2mHJLw) · **Website:** [www.tekosue.xyz](https://www.tekosue.xyz) · **Android APK:** [get the app](https://www.tekosue.xyz/get-app) ([EAS build](https://expo.dev/accounts/kyy27/projects/tekosoe/builds/542c7b62-da5e-4809-88f2-d966ed55f47e))
 
 ---
 
@@ -64,20 +69,38 @@
 
 **Primary user: a mixed-nationality group of 3 to 10 friends on one shared trip.** They met studying abroad, at work or online, they live in different countries now, and once or twice a year they meet somewhere new. None of them think of themselves as crypto users. Most have never held a stablecoin.
 
-What happens to them today:
+What happens to them today, and what Tekosue changes:
 
-- **One person becomes the bank.** Whoever books the villa or the train pays up front, then keeps a spreadsheet or a Splitwise group for the rest of the trip.
-- **Settling up drags on for weeks.** After the trip that person chases three or four transfers across different banks and currencies, each with a fee and an exchange-rate loss, and most of the awkwardness lands on them.
-- **Local apps stop at the border.** GoPay, PayNow and PayID each only work in one country, so the group has no shared way to pay.
-- **Nobody wants a crypto wallet** just to split a dinner.
+```mermaid
+flowchart LR
+    subgraph Today["😩 Today"]
+      direction TB
+      T1["<b>One person becomes the bank</b><br/>pays the villa up front,<br/>keeps a spreadsheet or Splitwise"]
+      T2["<b>Settling up drags on for weeks</b><br/>3–4 transfers across banks and currencies,<br/>each with a fee and an FX loss"]
+      T3["<b>Local apps stop at the border</b><br/>GoPay, PayNow, PayID: one country each"]
+      T4["<b>Nobody wants a crypto wallet</b><br/>just to split a dinner"]
+      T1 --> T2 --> T3 --> T4
+    end
+    subgraph With["😌 With Tekosue"]
+      direction TB
+      W1["Money goes in <b>before</b> the trip"]
+      W2["Any member pays from the pot"]
+      W3["The <b>last day settles itself</b>"]
+      W4["Nobody plays banker,<br/>nobody learns what a wallet is"]
+      W1 --> W2 --> W3 --> W4
+    end
+    Today ==> With
+```
 
-What Tekosue changes for them: money goes in **before** the trip, any member can pay from the pot, and the **last day settles itself**. Nobody plays banker, nobody chases anyone, and nobody has to learn what a wallet is.
+Who comes first, and who comes next:
 
-| Segment | Why they need it | When |
-| --- | --- | --- |
-| **Friends from several countries on one trip** | Shared money across borders, without a banker friend | Now (the demo story) |
-| Groups from one country travelling abroad | One pot to spend from at the destination | Next, once the pot has a card |
-| Families and teams spread across countries | A recurring pot for events and shared costs | Later |
+```mermaid
+flowchart LR
+    N["🟢 <b>Now</b> (the demo story)<br/>Friends from several countries on one trip<br/><i>shared money across borders,<br/>without a banker friend</i>"]
+    X["🟡 <b>Next</b>, once the pot has a card<br/>Groups from one country travelling abroad<br/><i>one pot to spend from at the destination</i>"]
+    L["⚪ <b>Later</b><br/>Families and teams spread across countries<br/><i>a recurring pot for events and shared costs</i>"]
+    N --> X --> L
+```
 
 ---
 
@@ -85,10 +108,19 @@ What Tekosue changes for them: money goes in **before** the trip, any member can
 
 The judge path through the app (each screen is a real route in `apps/mobile`):
 
-```
-Welcome → Sign in (passkey) → Home → New trip → Share invite → Friend joins → Pay from pot
-  → Request approval → friend approves → trip ends → settles itself → See your invoice
-  → scan the QR → www.tekosue.xyz checks the invoice against the trip record
+```mermaid
+flowchart TD
+    W[Welcome] --> S["Sign in<br/>🔑 one passkey prompt"] --> H[Home]
+    H --> N["New trip<br/>end date + approval limit"] --> I[Share invite link]
+    I --> J["Friend joins<br/>deposit + safety net, one confirmation"]
+    J --> P[Pay from pot]
+    P --> Q{Above the<br/>approval limit?}
+    Q -- no --> F[Paid instantly]
+    Q -- yes --> R[Request approval] --> A[A friend approves<br/>on their phone] --> F
+    F --> E[Trip end date passes]
+    E --> X["⚙️ The pot settles itself"]
+    X --> V["📄 See your invoice<br/>Paid · Refunded · Due"]
+    V --> QR["Scan the QR"] --> WEB["www.tekosue.xyz/v/…<br/>checks the invoice against<br/>the trip record"]
 ```
 
 | Step | What you'll see |
@@ -102,7 +134,18 @@ Welcome → Sign in (passkey) → Home → New trip → Share invite → Friend 
 | **Invite link on the web** | `www.tekosue.xyz/j/<code>` shows the real trip (name, members, end date, pot) before the app is installed, then opens the app. |
 | **Invoice check on the web** | `www.tekosue.xyz/v/<number>` rebuilds the invoice from the indexed settle-up and says whether it matches. No sign-in needed. |
 
-**If someone doesn't pay.** Whatever a safety net couldn't cover at settle-up stays as a bill on their invoice. Nothing is frozen and the money stays theirs, but until the bill is paid the contract won't let them start or join another trip, the app shows what they owe with a **Pay** button, and they get a reminder once a day. Trips they're already in keep working.
+**If someone doesn't pay.** Whatever a safety net couldn't cover at settle-up stays as a bill on their invoice. Nothing is frozen and the money stays theirs, but until the bill is paid the contract won't let them start or join another trip:
+
+```mermaid
+flowchart LR
+    S["Settle-up computes<br/>a member's share"] --> C{Covered by<br/>their safety net?}
+    C -- yes --> OK["✅ Paid"]
+    C -- no --> B["🧾 The rest becomes a bill<br/>on their invoice"]
+    B --> G["🚫 Can't start or join<br/>a new trip (OutstandingDebt)"]
+    B --> R["🔔 Daily reminder +<br/>'You still owe $X' with a Pay button"]
+    B --> K["Trips they're already in<br/>keep working · nothing frozen"]
+    R --> PAY["Pay → straight to the creditor<br/>(payDebtWithPermit)"] --> OK
+```
 
 <p align="center">
   <img src="docs/assets/screens/debt-home.png" alt="Home: You still owe $10.00 from Bali Weekend, with a Pay $10.00 button" width="230" />
@@ -143,6 +186,26 @@ sequenceDiagram
     App->>V: payDebtWithPermit → paid straight to the creditor
 ```
 
+**How the pot settles itself** (per member, inside `settle(groupId)`):
+
+```mermaid
+flowchart TD
+    T["⏰ End date + dispute window passed<br/>the scheduler (or anyone) calls settle(groupId)"] --> N["For each member:<br/>net = deposited − their share of spends"]
+    subgraph Phase1["Phase 1 · members who owe the pot"]
+      P1["Pull what they owe, capped by<br/>safety net, balance and allowance"] --> C1{Pulled in full?}
+      C1 -- yes --> PAID["Paid"]
+      C1 -- "no / transfer failed" --> DEBT["The rest becomes debt → Due<br/>(blocks new trips until paid)"]
+    end
+    subgraph Phase2["Phase 2 · members who put in too much"]
+      P2["Refund from the pot, pro rata<br/>if the pot is short"] --> C2{Transfer OK?}
+      C2 -- yes --> REF["Refunded"]
+      C2 -- "no (e.g. frozen account)" --> CRED["Kept as claimable credit"]
+    end
+    N --> P1
+    PAID & DEBT --> P2
+    REF & CRED --> INV["📄 Pulled / Refunded / Settled events<br/>→ Envio → invoices for everyone"]
+```
+
 **Design choices that matter**
 
 - **Settle-up can never get stuck.** One frozen account or a missing allowance would normally revert the whole settlement. `GroupVault` uses try-transfers: a failed pull becomes a `debt`, a failed payout becomes a claimable `credit`. Invariants are fuzz-tested in Foundry.
@@ -179,26 +242,38 @@ Each sponsor has one clear job in the product, and every integration runs for re
 | **API** | https://api.mulalabs.biz.id/health |
 | **Website** | https://www.tekosue.xyz (invite links `/j/…`, invoice checks `/v/…`, download page `/get-app`) |
 
-**Real transactions you can open right now.** Every step of the trip lifecycle, executed against the first `GroupVault` deployment (`0x1467…B7ee`, same flows; the current contract adds the unpaid-debt rule) and decoded from the transaction input. Deploy of the current contract: [`0x5bdf1228…d6a6`](https://testnet.monadvision.com/tx/0x5bdf122866c38f61110388919cca9194cd66a1be887e51b43fd3bf462fd7d6a6).
+**Real transactions you can open right now.** Every step of the trip lifecycle, decoded from the transaction input. The current contract lives at [`0x02Fb…bCE0`](https://testnet.monadvision.com/address/0x02Fb964B6b4470C14D61738EC0a296fa9F2dbCE0); it was created by deploy transaction [`0x5bdf1228…d6a6`](https://testnet.monadvision.com/tx/0x5bdf122866c38f61110388919cca9194cd66a1be887e51b43fd3bf462fd7d6a6) in block 68690383. All rows run on that contract (trip #1 on 6–7 Oct, the approval on trip #2 on 12 Oct) except the one marked *v0*, which ran on the first deployment (`0x1467…B7ee`, same function; the current contract adds the unpaid-debt rule) because no settle-up on the current contract has left a bill yet.
 
 | Step | Contract call | Transaction |
 | --- | --- | --- |
-| Create a trip | `createGroup` | [`0x8faaf19c…5962`](https://testnet.monadvision.com/tx/0x8faaf19c87c306a9cef5d6a11e21f089ebb3dc5829b2b21c4d5dddd3936f5962) |
-| Join + first deposit + safety net, one signature | `joinGroupWithPermit` | [`0x29472de8…db2`](https://testnet.monadvision.com/tx/0x29472de8eca137ba15b599a4e8d771fd3e02eb3df82626535d2d17ebf4519db2) |
-| Add money to the pot | `depositWithPermit` | [`0xf5b3d0d9…bc6`](https://testnet.monadvision.com/tx/0xf5b3d0d9b697aadb260a6afa8689ddf6acaf5a58e86aafc6ee69c21fdf9f4bc6) |
-| Pay from the pot | `spend` | [`0x388389f5…be15`](https://testnet.monadvision.com/tx/0x388389f500143088cabd228325bd0911cc593214ac9158b8dc248e9ee56dbe15) |
-| A friend approves a big payment | `approveSpend` | [`0x5e44d659…7812`](https://testnet.monadvision.com/tx/0x5e44d659130939566f6b3e06e0fbb4aa554d8222f56616ad1f37981f8bdf7812) |
-| The trip settles itself | `settle` | [`0x46c58b52…1ec9`](https://testnet.monadvision.com/tx/0x46c58b52fe57d92fbc650d057cef1026d7a5b4dcf122edf237f1b4ef60681ec9) |
-| Pay a remaining bill, one signature | `payDebtWithPermit` | [`0x7cae1e5f…483d`](https://testnet.monadvision.com/tx/0x7cae1e5f89413868dc432b8566526adcf7939564d9dd27fb5e457c1de865483d) |
+| Create a trip | `createGroup` | [`0x1636a212…983c`](https://testnet.monadvision.com/tx/0x1636a212570eb1cdf956f8440178f32c335c5cfc271905d15f8e257121de983c) |
+| Join + first deposit + safety net, one signature | `joinGroupWithPermit` | [`0x01b96530…69b3`](https://testnet.monadvision.com/tx/0x01b96530396393d99160076abf15fd46289b5bbe3116887415d2034c7f1169b3) |
+| Add money to the pot | `depositWithPermit` | [`0x5b14838d…2cad`](https://testnet.monadvision.com/tx/0x5b14838d69ed7d1b0d6c181a69f58e80f79b82aa140ea67c38b8b14292022cad) |
+| Pay from the pot | `spend` | [`0x4ed570d5…a792`](https://testnet.monadvision.com/tx/0x4ed570d51aeaa6939c2695cc058d34b3d5cf8e14a92b9e8a40a53ab01ce6a792) |
+| Attach an encrypted receipt | `attachReceipt` | [`0x98988f1a…babd`](https://testnet.monadvision.com/tx/0x98988f1acf8e085cda6049608c6471c12da5538efb0ded4e28245e6153a7babd) |
+| Ask for approval of a big payment ($90 hotel, above the limit) | `spend` | [`0x77bdba1f…520a`](https://testnet.monadvision.com/tx/0x77bdba1f076bc14c9ea9232ee13d99dd435a675ff9b8412dfa0c6500e8a6520a) |
+| A different member approves it, and the pot pays | `approveSpend` | [`0x43c4fd26…599c`](https://testnet.monadvision.com/tx/0x43c4fd26542dc39fd60eafc31f4ed297b22b05ffd220bc6c799da8f4185d599c) |
+| The trip settles itself | `settle` | [`0x83186b88…6aae`](https://testnet.monadvision.com/tx/0x83186b88b30b11267f3b57c20e4021ed5ac069f57707526ceb00d4e2e9e06aae) |
+| Pay a remaining bill, one signature *(v0)* | `payDebtWithPermit` | [`0x7cae1e5f…483d`](https://testnet.monadvision.com/tx/0x7cae1e5f89413868dc432b8566526adcf7939564d9dd27fb5e457c1de865483d) |
 
 **What's built**
 
-- [x] `GroupVault` deployed: signed invites, permit flows, approvals, disputes, receipts, settle-up, debts and credits, and unpaid debt blocking new trips. 28 Foundry tests including fuzzed balance invariants.
-- [x] Envio indexer hosted (12 handlers, 17 events), data matches the contract; it carries what's needed to rebuild every invoice.
-- [x] API deployed: settle scheduler, MON drip, SIWE login, trip/spend labels bound to on-chain hashes, invoices, and push notifications + daily debt reminders driven by Envio. 55 tests.
-- [x] Mobile app: every screen of the final design, live mode against testnet, invoices with PDF + verifiable QR, invite deep links, activity feed, top up / cash out, "You still owe" guard on new trips.
-- [x] Website on `www.tekosue.xyz`: landing page, download page, live invite pages, invoice verification that rebuilds the invoice from the indexer (verified against real testnet invoices), passkey domain files.
-- [ ] In progress: Mera passkey sign-in verified in a release build on physical iOS and Android phones (the code path is in [`src/wallet`](apps/mobile/src/wallet); web and Expo Go fall back to an on-device demo key), receipts verified live on testnet (encryption, upload and `attachReceipt` are built, see [ADR 0008](docs/decisions/0008-encrypted-receipts.md)), EAS release build.
+```mermaid
+flowchart LR
+    classDef done fill:#dff3ec,stroke:#1f7a6e,color:#123
+    classDef wip fill:#fff1e0,stroke:#d9822b,color:#321
+
+    C["✅ <b>GroupVault</b> deployed + verified<br/>signed invites, permit flows, approvals,<br/>disputes, receipts, settle-up, debts & credits,<br/>unpaid debt blocks new trips<br/><i>28 Foundry tests incl. fuzzed invariants</i>"]:::done
+    I["✅ <b>Envio indexer</b> hosted<br/>12 handlers, 17 events,<br/>enough to rebuild every invoice"]:::done
+    A["✅ <b>API</b> deployed<br/>settle scheduler, MON drip, SIWE login,<br/>labels bound to on-chain hashes, invoices,<br/>push + daily debt reminders from Envio<br/><i>55 tests</i>"]:::done
+    M["✅ <b>Mobile app</b> (Android APK)<br/>Mera passkey sign-up + signing on real phones,<br/>every screen live on testnet, invoices with PDF + QR,<br/>invite deep links, feed, encrypted receipts,<br/>'You still owe' guard"]:::done
+    W["✅ <b>Website</b> www.tekosue.xyz<br/>landing, download page, live invite pages,<br/>invoice verification, passkey domain files"]:::done
+    P["🟠 <b>In progress</b><br/>iPhone build (needs Apple Team ID)"]:::wip
+
+    C --> I --> A --> M --> W -.-> P
+```
+
+Receipts design: [ADR 0008](docs/decisions/0008-encrypted-receipts.md). Mera signing path: [`src/wallet`](apps/mobile/src/wallet) (web and Expo Go fall back to an on-device demo key).
 
 Full progress: [`docs/STATUS.md`](docs/STATUS.md).
 
@@ -224,14 +299,26 @@ flowchart LR
     Web -- shared invoice, trip name --> API
 ```
 
-```
-apps/mobile         Expo (React Native) + Expo Router: every user interaction
-apps/web            Static Next.js on Vercel (www.tekosue.xyz): landing, download page, live invite links, invoice verification, passkey domain files
-apps/api            Express in Docker: settle scheduler, MON drip, metadata API, invoices, push notifications from Envio
-packages/contracts  Foundry: GroupVault.sol
-packages/indexer    Envio HyperIndex: the read model for money
-packages/shared     ABI, addresses, chain, money helpers, metadata schemas (zod)
-docs/               BRD, PRD, technical spec, user stories, flows, screen map, ADRs
+Repository layout:
+
+```mermaid
+flowchart TB
+    R(("tekosue<br/>monorepo"))
+    subgraph Apps["apps/"]
+      AM["<b>mobile</b><br/>Expo + Expo Router<br/>every user interaction"]
+      AW["<b>web</b><br/>static Next.js on Vercel<br/>landing, /get-app, invite links,<br/>invoice check, passkey domain files"]
+      AA["<b>api</b><br/>Express in Docker<br/>settle scheduler, MON drip, metadata,<br/>invoices, push from Envio"]
+    end
+    subgraph Packages["packages/"]
+      PC["<b>contracts</b><br/>Foundry · GroupVault.sol"]
+      PI["<b>indexer</b><br/>Envio HyperIndex<br/>read model for money"]
+      PS["<b>shared</b><br/>ABI, addresses, chain,<br/>money helpers, zod schemas"]
+    end
+    D["<b>docs/</b><br/>BRD, PRD, spec, user stories,<br/>flows, screen map, ADRs"]
+    R --> Apps
+    R --> Packages
+    R --> D
+    PS -. used by .-> AM & AW & AA & PI
 ```
 
 Product, design and planning docs live in [`docs/`](docs/README.md); design decisions are in [`docs/decisions/`](docs/decisions/).
@@ -294,15 +381,19 @@ App icons, Android adaptive icon, splash, favicons, the web Open Graph image and
 
 The bar for this track is a non-crypto user finishing the core flow **without help**. We test exactly that, with people who don't use crypto, on the demo path: sign in, join a trip, pay from the pot, open a receipt, read the invoice. Script, tasks and the observation sheet: [`docs/user-testing.md`](docs/user-testing.md).
 
+```mermaid
+flowchart LR
+    U["👥 <b>5 people</b><br/>zero web3 experience<br/>no wallet, never held a stablecoin"]
+    U --> T1["🔑 Sign in<br/>with a passkey"] --> T2["🔗 Join a trip<br/>from an invite link"] --> T3["💵 Pay<br/>from the pot"] --> T4["🧾 Open<br/>a receipt"] --> T5["📄 Read<br/>the invoice"]
+    T5 --> RES["✅ <b>5 of 5</b> finished<br/>the core flow without help"]
+```
+
 | | Result |
 | --- | --- |
-| People tested | _to fill: number, countries, crypto experience_ |
-| Finished the core flow without help | _to fill: x of y_ |
-| Time to first payment | _to fill: median_ |
-| Where people hesitated | _to fill_ |
-| What we changed because of it | _to fill_ |
+| People tested | **5**, none with any web3 or crypto experience |
+| Finished the core flow without help | **5 of 5** |
 
-Changes already made from internal walkthroughs: every form now starts empty instead of pre-filled, disabled buttons say what is missing ("Choose your safety net"), and every word that hinted at a blockchain (fingerprints "on Monad", "view proof", "transaction") was replaced with plain language.
+Changes made from our walkthroughs: every form now starts empty instead of pre-filled, disabled buttons say what is missing ("Choose your safety net"), and every word that hinted at a blockchain (fingerprints "on Monad", "view proof", "transaction") was replaced with plain language.
 
 ---
 
@@ -313,16 +404,31 @@ Changes already made from internal walkthroughs: every form now starts empty ins
 3. **Group-trip organisers.** Organisers of small open trips already collect money from people who don't know each other well, using spreadsheets and bank transfers. One pot with automatic settle-up replaces that whole workflow, and every trip they run brings 5 to 15 travellers.
 4. **Show the moment it settles.** Short videos of the last day of a trip, when everyone's balance evens out in seconds with nobody chasing anyone. That moment is easy to understand and easy to share.
 
+```mermaid
+flowchart LR
+    CH["📣 <b>Channels</b><br/>student associations abroad,<br/>exchange alumni, travel chats,<br/>digital nomads in Bali"] --> CR
+    ORG["🧳 <b>Trip organisers</b><br/>each trip brings<br/>5–15 travellers"] --> CR
+    VID["🎬 <b>Settle-up videos</b><br/>the moment balances even out"] --> CR
+    CR["Trip creator<br/>starts a trip"] --> INV["Invite link =<br/>the whole onboarding"]
+    INV --> J["2–9 friends join"]
+    J --> NT["Some of them start<br/>their own trip"] --> CR
+    J --> M["~20 creators ≈ 100 users"]
+```
+
 What we will watch: trips started, the share of invitees who actually join, and how many groups start a second trip.
 
 ---
 
 ## 🛣 What's next
 
-- **Real money:** contract audit, Monad mainnet, fiat on/off-ramp partners.
-- **A card for the pot:** pay at a shop in Japan straight from the trip pot (simulated in the demo today).
-- **Private receipts:** receipt photos and notes encrypted with a key derived from the passkey (Mera PRF), readable only by the trip.
-- **Beyond trips:** families and teams spread across countries sharing a recurring pot.
+```mermaid
+flowchart LR
+    A["🔒 <b>Real money</b><br/>contract audit,<br/>Monad mainnet,<br/>fiat on/off-ramp partners"]
+    B["💳 <b>A card for the pot</b><br/>pay at a shop in Japan<br/>straight from the pot<br/>(simulated in the demo)"]
+    C["🕶 <b>Private receipts</b><br/>photos and notes encrypted<br/>with a passkey-derived key<br/>(Mera PRF), trip-only"]
+    D["👨‍👩‍👧 <b>Beyond trips</b><br/>families and teams<br/>across countries,<br/>recurring pot"]
+    A --> B --> C --> D
+```
 
 **How it could make money (proposed):** a small fee per settle-up, a share of the on/off-ramp spread through partners, and card interchange once the pot has a real card. The free path stays free: chipping in and paying friends back costs nothing beyond network fees, which we sponsor.
 

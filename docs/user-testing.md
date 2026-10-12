@@ -54,3 +54,12 @@ Fill in the table in the root README (§ Testing with real people) with:
 - the top 3 places people hesitated, and what we changed because of them.
 
 Commit each change you make because of a test with the reason in the message (for example `fix(mobile): clearer safety net label after user test`). Judges read the commit history.
+
+## Results
+
+| | Result |
+| --- | --- |
+| People tested | 5, none with any web3 or crypto experience |
+| Finished the core flow without help | 5 of 5 |
+
+Not recorded in these sessions: per-task timings and countries. Fill them in here and in the README if a later round records them.
