@@ -9,8 +9,11 @@ import {
   encKeyPair,
   encryptReceipt,
   fromBase64,
+  isEnvelope,
   newTripKey,
+  openEnvelope,
   receiptHash,
+  sealReceiptForMembers,
   toBase64,
   unwrapTripKey,
   wrapTripKey,
@@ -48,6 +51,16 @@ async function publishMyKey(account: LocalAccount) {
   return publicKey;
 }
 
+/** Kunci publik anggota trip yang sudah terdaftar, termasuk HP ini. */
+async function memberKeys(account: LocalAccount, tripId: string): Promise<{ address: string; publicKey: Uint8Array }[]> {
+  const mine = await publishMyKey(account);
+  const keys = (await api.groupEncKeys(account, tripId))
+    .filter((k): k is { address: Address; encPublicKey: string } => Boolean(k.encPublicKey))
+    .map((k) => ({ address: k.address.toLowerCase(), publicKey: hexToBytes(k.encPublicKey as Hex) }));
+  const me = account.address.toLowerCase();
+  return keys.some((k) => k.address === me) ? keys : [...keys, { address: me, publicKey: mine }];
+}
+
 /** Bungkus kunci trip untuk setiap anggota yang sudah punya kunci publik (api mengabaikan yang sudah ada). */
 async function shareTripKey(account: LocalAccount, tripId: string, tripKey: Uint8Array) {
   const keys = await api.groupEncKeys(account, tripId);
@@ -58,6 +71,15 @@ async function shareTripKey(account: LocalAccount, tripId: string, tripKey: Uint
 }
 
 const tripKeys = new Map<string, Uint8Array>();
+
+/** HP ini belum memegang kunci trip (teman yang memegangnya belum membuka Tekosue sejak HP ini terdaftar). */
+class NoTripKeyError extends Error {
+  constructor() {
+    super(
+      "This phone can't open this trip's receipts yet. It unlocks as soon as a friend in this trip opens Tekosue. Try again after that.",
+    );
+  }
+}
 
 /**
  * Kunci trip untuk anggota ini. Kalau belum ada salinan terbungkus untuknya:
@@ -81,9 +103,7 @@ async function tripKeyFor(account: LocalAccount, tripId: string, { create }: { c
     const hasReceipts = (group?.spends ?? []).some((s) => s.receiptCount > 0);
     if (!create || hasReceipts) {
       // Kunci trip dipegang teman; HP mereka membagikannya otomatis saat membuka Tekosue (syncReceiptKeys).
-      throw new Error(
-        "This phone can't open this trip's receipts yet. It unlocks as soon as a friend in this trip opens Tekosue. Try again after that.",
-      );
+      throw new NoTripKeyError();
     }
     tripKey = newTripKey();
     await shareTripKey(account, tripId, tripKey);
@@ -135,8 +155,15 @@ async function compressPhoto(uri: string): Promise<Uint8Array> {
 
 export async function attachReceipt(account: LocalAccount, tripId: string, spendId: string, photoUri: string) {
   try {
-    const tripKey = await tripKeyFor(account, tripId, { create: true });
-    const sealed = encryptReceipt(tripKey, await compressPhoto(photoUri), tripId, spendId);
+    const photo = await compressPhoto(photoUri);
+    let sealed: Uint8Array;
+    try {
+      sealed = encryptReceipt(await tripKeyFor(account, tripId, { create: true }), photo, tripId, spendId);
+    } catch (error) {
+      if (!(error instanceof NoTripKeyError)) throw error;
+      // Belum memegang kunci trip: amplop untuk setiap anggota yang kunci publiknya terdaftar (ADR 0018).
+      sealed = sealReceiptForMembers(photo, tripId, spendId, await memberKeys(account, tripId));
+    }
     const hash = receiptHash(sealed);
 
     const upload = await api.receiptUploadUrl(account, { groupId: tripId, spendId, sizeBytes: sealed.length, mime: 'image/jpeg' });
@@ -159,7 +186,6 @@ export async function attachReceipt(account: LocalAccount, tripId: string, spend
 /** Unduh, periksa sidik jari terhadap data on-chain, dan buka struk di HP ini. */
 export async function openReceipt(account: LocalAccount, tripId: string, spendId: string, hash: Hex) {
   try {
-    const tripKey = await tripKeyFor(account, tripId, { create: false });
     const found = await api.receiptByHash(account, hash);
     const res = await fetch(found.downloadUrl);
     if (!res.ok) throw new Error('The receipt could not be downloaded. Try again.');
@@ -167,7 +193,9 @@ export async function openReceipt(account: LocalAccount, tripId: string, spendId
     if (receiptHash(sealed).toLowerCase() !== hash.toLowerCase()) {
       throw new Error('This receipt does not match the one recorded for the payment.');
     }
-    const plain = decryptReceipt(tripKey, sealed, tripId, spendId);
+    const plain = isEnvelope(sealed)
+      ? openEnvelope(sealed, tripId, spendId, account.address, (await encKeyPair(account)).privateKey)
+      : decryptReceipt(await tripKeyFor(account, tripId, { create: false }), sealed, tripId, spendId);
     return { uri: `data:${found.mime};base64,${toBase64(plain)}`, mime: found.mime };
   } catch (error) {
     friendly(error);
