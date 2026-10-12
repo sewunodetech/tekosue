@@ -7,7 +7,7 @@ import type { Profile } from './types';
  * Mode demo: SecureStore di HP (web tidak punya SecureStore → disimpan di memori saja).
  * TODO (M6/M12 live): baca/tulis lewat api → `profiles`, dengan permintaan bertanda tangan EIP-191.
  */
-const KEY = 'tekosoe_profile';
+const KEY = 'tekosue_profile';
 let memory: Profile | null = null;
 
 export async function loadProfile(): Promise<Profile | null> {

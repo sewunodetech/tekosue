@@ -3,12 +3,12 @@
     "apps": [],
     "details": [
       {
-        "appID": "TEAMID.com.tekosoe.xyz",
+        "appID": "TEAMID.com.tekosue.xyz",
         "paths": ["/j/*"]
       }
     ]
   },
   "webcredentials": {
-    "apps": ["TEAMID.com.tekosoe.xyz"]
+    "apps": ["TEAMID.com.tekosue.xyz"]
   }
 }

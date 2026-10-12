@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Sparkle } from '@/components/decor';
 import { combine, QueryState } from '@/components/query-state';
 import { Teko } from '@/components/teko';
+import { useReceiptSaving } from '@/features/spends/receipt-uploads';
 import { ActivityRow, MemberAmountRow } from '@/components/trip-rows';
 import { Button } from '@/components/ui/button';
 import { Icon, type IconName } from '@/components/ui/icon';
@@ -54,6 +55,7 @@ function spendHref(trip: Trip, spend: Spend): Href {
 }
 
 function TripView({ trip, lastSpend, empty }: { trip: Trip; lastSpend?: Spend; empty: boolean }) {
+  const isSavingReceipt = useReceiptSaving(trip.id);
   return (
     <Screen
       gap={16}
@@ -108,6 +110,7 @@ function TripView({ trip, lastSpend, empty }: { trip: Trip; lastSpend?: Spend; e
           {lastSpend && (
             <ActivityRow
               spend={lastSpend}
+              savingReceipt={isSavingReceipt(lastSpend.id)}
               fresh
               meta={isLive ? `${lastSpend.paidBy.label} · ${lastSpend.when}` : `You · approved by ${trip.members[0].name} · just now`}
             />
@@ -149,6 +152,7 @@ function TripView({ trip, lastSpend, empty }: { trip: Trip; lastSpend?: Spend; e
                 <ActivityRow
                   key={spend.id}
                   spend={spend}
+                  savingReceipt={isSavingReceipt(spend.id)}
                   fresh={i === 0}
                   meta={
                     i === 0

@@ -15,7 +15,11 @@ import { hexToBytes, keccak256, type Hex, type LocalAccount } from 'viem';
  */
 
 const ENC_KEY_MESSAGE = 'Tekosue receipts\n\nUnlock the key that opens receipts in your trips.\n\nv1';
-const WRAP_INFO = 'tekosoe/trip-key-wrap/v1';
+const WRAP_INFO = 'tekosue/trip-key-wrap/v1';
+// Label sebelum rebrand (ADR 0016). Hanya untuk MEMBUKA kunci trip dan struk yang dibuat sebelum 12 Okt;
+// semua yang baru memakai label tekosue. Jangan dihapus selama masih ada struk lama on-chain.
+const LEGACY_WRAP_INFO = 'tekosoe/trip-key-wrap/v1';
+const LEGACY_RECEIPT_PREFIX = 'tekosoe/receipt/v1';
 const NONCE_BYTES = 12;
 
 export type EncKeyPair = { privateKey: Uint8Array; publicKey: Uint8Array };
@@ -52,12 +56,16 @@ export function unwrapTripKey(wrapped: string, privateKey: Uint8Array): Uint8Arr
   const bytes = fromBase64(wrapped);
   const ephemeralPublic = bytes.slice(0, 32);
   const nonce = bytes.slice(32, 32 + NONCE_BYTES);
-  const kek = hkdf(sha256, x25519.getSharedSecret(privateKey, ephemeralPublic), undefined, WRAP_INFO, 32);
-  return gcm(kek, nonce).decrypt(bytes.slice(32 + NONCE_BYTES));
+  const shared = x25519.getSharedSecret(privateKey, ephemeralPublic);
+  return withLegacyFallback((info) => gcm(hkdf(sha256, shared, undefined, info, 32), nonce).decrypt(bytes.slice(32 + NONCE_BYTES)), [
+    WRAP_INFO,
+    LEGACY_WRAP_INFO,
+  ]);
 }
 
 /** Data tambahan GCM: ciphertext hanya bisa dibuka sebagai struk untuk pemakaian ini. */
-const receiptAad = (tripId: string, spendId: string) => new TextEncoder().encode(`tekosoe/receipt/v1/${tripId}/${spendId}`);
+const receiptAad = (tripId: string, spendId: string, prefix = 'tekosue/receipt/v1') =>
+  new TextEncoder().encode(`${prefix}/${tripId}/${spendId}`);
 
 /** nonce(12) ‖ AES-256-GCM(isi file). */
 export function encryptReceipt(tripKey: Uint8Array, plain: Uint8Array, tripId: string, spendId: string): Uint8Array {
@@ -66,7 +74,24 @@ export function encryptReceipt(tripKey: Uint8Array, plain: Uint8Array, tripId: s
 }
 
 export function decryptReceipt(tripKey: Uint8Array, sealed: Uint8Array, tripId: string, spendId: string): Uint8Array {
-  return gcm(tripKey, sealed.slice(0, NONCE_BYTES), receiptAad(tripId, spendId)).decrypt(sealed.slice(NONCE_BYTES));
+  const nonce = sealed.slice(0, NONCE_BYTES);
+  return withLegacyFallback(
+    (aad) => gcm(tripKey, nonce, aad).decrypt(sealed.slice(NONCE_BYTES)),
+    [receiptAad(tripId, spendId), receiptAad(tripId, spendId, LEGACY_RECEIPT_PREFIX)],
+  );
+}
+
+/** Coba label baru dulu, lalu label lama; GCM menolak label yang salah, jadi tidak ada salah buka. */
+function withLegacyFallback<L, T>(open: (label: L) => T, labels: L[]): T {
+  let lastError: unknown;
+  for (const label of labels) {
+    try {
+      return open(label);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError;
 }
 
 /** Sidik jari yang dicatat lewat `attachReceipt` dan diperiksa api saat konfirmasi unggahan. */

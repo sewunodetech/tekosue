@@ -12,6 +12,7 @@ import { Text } from '@/components/ui/text';
 import { combine, QueryState } from '@/components/query-state';
 import { colors, fonts, palette, radius } from '@/constants/theme';
 import type { Spend, Trip } from '@/data/types';
+import { useNudgeSpend } from '@/features/spends/useNudgeSpend';
 import { useSpend } from '@/features/spends/useSpend';
 import { useTrip } from '@/features/trips/useTrip';
 import { money } from '@/lib/money';
@@ -19,7 +20,8 @@ import { useNotifications } from '@/providers/notification-provider';
 import { isLive } from '@/lib/env';
 
 // S2 Waiting for approval — canvas "Final UI" › S02Waiting
-// TODO: Envio SpendRequested + api → spend_reviews (Seen). "Nudge" kirim push.
+// TODO: Envio SpendRequested + api → spend_reviews (Seen).
+// "Nudge" → api mengirim push ke anggota lain; HP ini hanya menampilkan banner konfirmasi.
 export default function WaitingForApprovalScreen() {
   const { id, spendId } = useLocalSearchParams<{ id: string; spendId: string }>();
   return (
@@ -30,7 +32,8 @@ export default function WaitingForApprovalScreen() {
 }
 
 function WaitingView({ trip, spend }: { trip: Trip; spend: Spend }) {
-  const { notify } = useNotifications();
+  const { showInApp } = useNotifications();
+  const nudge = useNudgeSpend(trip.id, spend.id);
   // Yang bisa menyetujui = anggota selain pembayar. Status "Seen" masih demo (TODO: spend_reviews).
   const others = trip.members.filter((m) => m.id !== spend.paidBy?.id);
 
@@ -45,14 +48,22 @@ function WaitingView({ trip, spend }: { trip: Trip; spend: Spend }) {
       footer={
         <>
           <Button
-            label={`Nudge ${nudgeNames}`}
-            onPress={() => {
-              notify({
-                title: `${spend.paidBy.name} nudged you`,
-                body: `Please approve the payment for ${spend.title}.`,
-                data: { url: `/trip/${trip.id}/spend/${spend.id}/approve` },
-              });
-            }}
+            label={nudge.isPending ? 'Nudging…' : nudge.isSuccess ? `Nudge ${nudgeNames} again` : `Nudge ${nudgeNames}`}
+            disabled={nudge.isPending}
+            onPress={() =>
+              nudge.mutate(undefined, {
+                onSuccess: () =>
+                  showInApp({
+                    title: 'Nudge sent',
+                    body: `We reminded ${nudgeNames} to say yes to ${money(spend.amount)} for ${spend.title}.`,
+                  }),
+                onError: (error) =>
+                  showInApp({
+                    title: "Couldn't nudge right now",
+                    body: error instanceof Error ? error.message : 'Please try again in a moment.',
+                  }),
+              })
+            }
           />
           <Link href={`/trip/${trip.id}`} asChild>
             <Button label="Cancel request" variant="ghost" />

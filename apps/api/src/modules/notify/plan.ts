@@ -55,7 +55,7 @@ export async function resolveTripName(ctx: AppDeps, groupId: bigint): Promise<st
   }
 }
 
-async function loadNames(ctx: AppDeps, members: string[]): Promise<Map<string, string>> {
+export async function loadNames(ctx: AppDeps, members: string[]): Promise<Map<string, string>> {
   if (members.length === 0) return new Map();
   try {
     const rows = await ctx.repos.profiles.list([...new Set(members)]);
@@ -65,7 +65,7 @@ async function loadNames(ctx: AppDeps, members: string[]): Promise<Map<string, s
   }
 }
 
-function displayName(names: Map<string, string>, address: string): string {
+export function displayName(names: Map<string, string>, address: string): string {
   return names.get(address) ?? SOMEONE;
 }
 
@@ -179,6 +179,32 @@ export async function buildNotifyPlan(ctx: AppDeps, event: DecodedGroupEvent): P
   if (bodies.size === 0) return null;
 
   return { groupId, title: trip, url, tag: tagParts.join(":"), bodies };
+}
+
+/**
+ * "Nudge" from S2 Waiting: the spender reminds every other member that a payment still waits for a
+ * yes. Same copy rules as the event plans (no crypto words); links straight to 10 Approval.
+ */
+export async function buildNudgePlan(
+  ctx: AppDeps,
+  groupId: bigint,
+  spendId: bigint,
+  spender: string,
+  amount: bigint,
+): Promise<NotifyPlan> {
+  const from = addr(spender);
+  const trip = await resolveTripName(ctx, groupId);
+  const members = addresses(await ctx.chain.membersOf(groupId)).filter((member) => member !== from);
+  const names = await loadNames(ctx, [from]);
+  const body = `${displayName(names, from)} is still waiting for a yes on ${formatAusd(amount)} from the pot. Tap to approve.`;
+  const bodies = new Map(members.map((member) => [member, body] as const));
+  return {
+    groupId,
+    title: trip,
+    url: `/trip/${groupId}/spend/${spendId}/approve`,
+    tag: ["Nudge", groupId.toString(), spendId.toString()].join(":"),
+    bodies,
+  };
 }
 
 /**

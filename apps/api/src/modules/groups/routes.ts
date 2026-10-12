@@ -8,6 +8,10 @@ import { ApiError, errors } from "../../lib/errors";
 import { requireAuth } from "../../middleware/auth";
 import { apiRateLimit, MINUTE_MS } from "../../middleware/rateLimit";
 import { pathParam, validate } from "../../middleware/validate";
+import { buildNudgePlan, sendPlan } from "../notify/plan";
+
+/** GroupVault SpendStatus.Pending (IGroupVault.sol). */
+const SPEND_PENDING = 0;
 
 const decimalId = z.string().regex(/^\d+$/, "must be a decimal id");
 const CONTROL_CHARS = /[\u0000-\u001F\u007F]/;
@@ -186,6 +190,38 @@ export function createGroupRoutes(ctx: RouteContext): Router {
         decisionNote: body.decisionNote,
       });
       res.json(serializeReview(row));
+    },
+  );
+
+  // S2 Waiting › "Nudge": push a reminder to the other members (never to the spender's own phone).
+  router.post(
+    "/:groupId/spends/:spendId/nudge",
+    auth,
+    member,
+    apiRateLimit({
+      windowMs: MINUTE_MS,
+      max: 3,
+      // Per person per payment, so one chatty trip can't use up someone else's nudges.
+      keyGenerator: (req) => `${req.auth?.address ?? req.ip}:${req.params.groupId}:${req.params.spendId}`,
+      code: "NUDGE_RATE_LIMITED",
+      message: "You just nudged your friends, give them a minute",
+    }),
+    validate({ params: spendParams }),
+    async (req, res) => {
+      const groupId = BigInt(pathParam(req, "groupId"));
+      const spendId = BigInt(pathParam(req, "spendId"));
+      const spend = await ctx.chain.getSpend(groupId, spendId);
+
+      if (!sameAddress(spend.spender, req.auth!.address)) {
+        throw errors.forbidden("NOT_SPENDER", "Only the person who asked can nudge for this payment");
+      }
+      if (spend.status !== SPEND_PENDING) {
+        throw errors.conflict("SPEND_NOT_PENDING", "This payment is no longer waiting for a yes");
+      }
+
+      const plan = await buildNudgePlan(ctx, groupId, spendId, spend.spender, spend.amount);
+      const sent = await sendPlan(ctx, plan);
+      res.json({ recipients: plan.bodies.size, sent });
     },
   );
 

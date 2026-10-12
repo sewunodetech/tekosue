@@ -1,28 +1,38 @@
-import { Link, router, type Href } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { router, type Href } from 'expo-router';
+import { StyleSheet, View } from 'react-native';
 
 import { Logo } from '@/components/logo';
 import { Teko } from '@/components/teko';
+import { useReceiptSaving } from '@/features/spends/receipt-uploads';
+import { ActivityRow } from '@/components/trip-rows';
 import { Button } from '@/components/ui/button';
-import { Icon } from '@/components/ui/icon';
 import { Pill, Screen, SectionLabel } from '@/components/ui/layout';
 import { Text } from '@/components/ui/text';
 import { EmptyState } from '@/components/ui/empty-state';
 import { QueryState } from '@/components/query-state';
 import { colors, fonts, palette, radius } from '@/constants/theme';
-import type { Trip } from '@/data/types';
+import type { Spend, Trip } from '@/data/types';
 import { useTrips } from '@/features/trips/useTrips';
 import { money } from '@/lib/money';
 
 // 12 Card (simulated) — canvas "Final UI" › F12Card.
-// Tiap tap = spend nyata dari pot ke alamat toko demo (FR-16). Tokyo Taxi mendemokan S4 (offline).
+// Kartunya simulasi, uangnya tidak: tiap tap = spend nyata dari pot ke alamat toko demo (FR-16).
+// Riwayat kartu = pemakaian pot trip ini (live: Envio), bukan daftar toko contoh.
 export default function CardScreen() {
   return (
     <QueryState query={useTrips()} tab headerAction="none">
-      {/* Kartu memakai pot trip aktif pertama. TODO: pilih trip aktif bila lebih dari satu. */}
-      {({ list }) => (list[0] ? <CardView trip={list[0]} /> : <NoTripCard />)}
+      {/* Kartu memakai pot trip yang belum settle; kalau semuanya sudah, trip terbaru. */}
+      {({ list }) => {
+        const trip = list.find((t) => !t.settled) ?? list[0];
+        return trip ? <CardView trip={trip} /> : <NoTripCard />;
+      }}
     </QueryState>
   );
+}
+
+function spendHref(trip: Trip, spend: Spend): Href {
+  if (spend.status === 'pending') return `/trip/${trip.id}/spend/${spend.id}/waiting`;
+  return `/trip/${trip.id}/spend/${spend.id}`;
 }
 
 // Akun baru (mode live) belum punya trip, jadi belum ada pot untuk kartu.
@@ -45,14 +55,18 @@ function NoTripCard() {
 }
 
 function CardView({ trip }: { trip: Trip }) {
+  const isSavingReceipt = useReceiptSaving(trip.id);
   return (
     <Screen
       tab
       gap={18}
       footer={
-        <Text variant="small" color={colors.textMuted} style={styles.footnote}>
-          The card is a demo. Each tap is a real payment from the pot to the shop.
-        </Text>
+        <>
+          {!trip.settled && <Button label="Tap to pay" onPress={() => router.push(`/trip/${trip.id}/pay`)} />}
+          <Text variant="small" color={colors.textMuted} style={styles.footnote}>
+            The card is a demo. Each tap is a real payment from the pot.
+          </Text>
+        </>
       }>
       <View style={styles.header}>
         <Text variant="h3" style={{ flex: 1 }}>
@@ -84,10 +98,26 @@ function CardView({ trip }: { trip: Trip }) {
         <Stat label="Tap limit" value={money(trip.approvalLimit)} />
       </View>
 
-      <View style={{ gap: 8 }}>
-        <SectionLabel>Tap to pay at a demo shop</SectionLabel>
-        <Shop initial="L" name="Konbini Shibuya" detail="Snacks and water · $12.00" tint={palette.sky} href={`/trip/${trip.id}`} />
-        <Shop initial="T" name="Tokyo Taxi" detail="Ride to hotel · $24.00" tint={palette.apricot} href={`/trip/${trip.id}/payment-failed`} />
+      <View style={{ gap: 4 }}>
+        <View style={{ paddingBottom: 6 }}>
+          <SectionLabel>Card history</SectionLabel>
+        </View>
+        {trip.activity.length === 0 ? (
+          <EmptyState
+            title="No card payments yet"
+            description={trip.settled ? undefined : 'Tap to pay, and each payment from the pot shows up here.'}
+          />
+        ) : (
+          trip.activity.map((spend) => (
+            <ActivityRow
+              key={spend.id}
+              spend={spend}
+              savingReceipt={isSavingReceipt(spend.id)}
+              meta={`${spend.paidBy.label} · ${spend.status === 'pending' ? 'waiting for a yes' : spend.when}`}
+              href={spendHref(trip, spend)}
+            />
+          ))
+        )}
       </View>
     </Screen>
   );
@@ -103,25 +133,6 @@ function Stat({ label, value }: { label: string; value: string }) {
         {value}
       </Text>
     </View>
-  );
-}
-
-function Shop({ initial, name, detail, tint, href }: { initial: string; name: string; detail: string; tint: string; href: Href }) {
-  return (
-    <Link href={href} asChild>
-      <Pressable style={styles.shop}>
-        <View style={[styles.shopIcon, { backgroundColor: tint }]}>
-          <Text style={{ fontFamily: fonts.bodyExtraBold, fontSize: 14 }}>{initial}</Text>
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 14 }}>{name}</Text>
-          <Text variant="small" color={colors.textMuted} style={{ fontFamily: fonts.body }}>
-            {detail}
-          </Text>
-        </View>
-        <Icon name="chevron" size={18} color={colors.textMuted} strokeWidth={2} />
-      </Pressable>
-    </Link>
   );
 }
 
@@ -168,22 +179,6 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: radius.row,
     backgroundColor: colors.surface,
-  },
-  shop: {
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: radius.row,
-    backgroundColor: colors.surface,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  shopIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.iconTile,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   footnote: {
     textAlign: 'center',

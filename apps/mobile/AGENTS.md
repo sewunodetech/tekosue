@@ -36,7 +36,7 @@ Sumber: canvas Claude "Tekosue — Wireframe", halaman **Final UI** (F01–F13, 
 | Unlock | `unlock.tsx` | Di luar Final UI. HP sudah punya akun (ID passkey tersimpan) tapi sesi belum terbuka → gate membuka ini, langsung minta passkey; "Use a different account" melupakan akun lalu ke 02 |
 | T1–T6 Tour | `features/tour/` | Overlay di atas 03, sekali per akun per perangkat; `/trips?tour=<id>` memutar ulang (Help di P2) |
 | 03 Home · S5 | `(tabs)/trips.tsx` (URL `/trips`) | F03Home + kartu grup besar S05BigGroup |
-| 12 Card | `(tabs)/card.tsx` | F12Card; Tokyo Taxi → S4 |
+| 12 Card | `(tabs)/card.tsx` | F12Card; riwayat kartu = pemakaian pot trip yang belum settle, "Tap to pay" → 09 (ADR 0015) |
 | 04 New trip | `trip/new.tsx` | F04Create |
 | 05 Invite | `invite/[code]/index.tsx` | F05Invite; deep link `tekosue://invite/<code>` |
 | ~~06 Join + put in~~ | `invite/[code]/join.tsx` | Dihapus (ADR 0009): redirect ke 05; gabung langsung dari 05 |
@@ -79,7 +79,7 @@ ID demo: trip `japan`, `euro`; spend `dinner`, `ramen`, `train`. Jalur demo juri
 - Join = satu transaksi dari 05 Invite tanpa setoran (ADR 0009): `joinGroupWithPermit` dengan safety net pembuat trip (dibaca dari `positionOf(groupId, creator)`), atau `joinGroup` kalau safety net 0. Setor = `depositWithPermit`; bayar tagihan = `payDebtWithPermit`.
 - Saldo dolar pribadi = kartu "Your dollars" di Profile (ADR 0006). **Top up** (`/balance/top-up`, simulasi on-ramp: faucet AUSD Agora) dan **Cash out** (`/balance/cash-out`, simulasi off-ramp: transfer AUSD ke `EXPO_PUBLIC_CASH_OUT_ADDRESS`). Tidak ada dolar gratis otomatis: kalau dolar kurang, Add money / Join menampilkan "Top up to …" yang membuka Top up.
 - Setiap aksi live (`data/live/actions.ts`) baru selesai setelah Envio memproses blok transaksinya (`waitForIndexer`), jadi `invalidateQueries` sesudahnya langsung mengambil data terbaru. Tidak perlu optimistic update untuk pot/saldo.
-- Struk (M7, ADR 0008): `data/live/receipts.ts` + `lib/receipt-crypto.ts` — kunci trip dibagikan lewat api `keys`, struk dienkripsi di HP, diunggah, lalu `attachReceipt`. Butuh `FEATURE_RECEIPTS` + S3 di api. Halaman kartu (Card) masih demo.
+- Struk (M7, ADR 0008): `data/live/receipts.ts` + `lib/receipt-crypto.ts` — kunci trip dibagikan lewat api `keys`, struk dienkripsi di HP, diunggah, lalu `attachReceipt`. Butuh `FEATURE_RECEIPTS` + S3 di api. Kartu (Card) tetap berlabel simulasi, tapi riwayat dan pembayarannya nyata (ADR 0015). Push di latar belakang butuh Firebase (`GOOGLE_SERVICES_JSON`) + kunci FCM V1 di EAS.
 
 ## Expo has changed — do not trust your training data
 

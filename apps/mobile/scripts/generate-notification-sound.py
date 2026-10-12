@@ -2,8 +2,8 @@
 
     python apps/mobile/scripts/generate-notification-sound.py
 
-Menulis apps/mobile/assets/sounds/tekosoe.wav (didaftarkan lewat plugin expo-notifications di
-app.json, dipakai channel Android `tekosoe-chime` dan push dari apps/api). Butuh build native ulang.
+Menulis apps/mobile/assets/sounds/tekosue.wav (didaftarkan lewat plugin expo-notifications di
+app.json, dipakai channel Android `tekosue-chime` dan push dari apps/api). Butuh build native ulang.
 """
 import math
 import os
@@ -11,7 +11,7 @@ import struct
 import wave
 
 SR = 44100
-OUT = os.path.join(os.path.dirname(__file__), '..', 'assets', 'sounds', 'tekosoe.wav')
+OUT = os.path.join(os.path.dirname(__file__), '..', 'assets', 'sounds', 'tekosue.wav')
 
 
 def new(sec):

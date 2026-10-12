@@ -12,13 +12,12 @@ let handlerConfigured = false;
 let pushTokenFailureLogged = false;
 
 /**
- * Channel Android dengan suara khas Tekosue (assets/sounds/tekosoe.wav, didaftarkan lewat plugin
+ * Channel Android dengan suara khas Tekosue (assets/sounds/tekosue.wav, didaftarkan lewat plugin
  * expo-notifications di app.json). Suara channel tidak bisa diubah setelah dibuat, jadi channel
  * baru = id baru. apps/api mengirim push ke channel yang sama.
  */
-export const NOTIFICATION_CHANNEL_ID = 'tekosoe-chime';
-export const NOTIFICATION_SOUND = 'tekosoe.wav';
-const LEGACY_CHANNEL_IDS = ['tekosoe-default', 'tekosoe'];
+export const NOTIFICATION_CHANNEL_ID = 'tekosue-chime';
+export const NOTIFICATION_SOUND = 'tekosue.wav';
 
 /**
  * Lazy loader aman untuk expo-notifications.
@@ -70,9 +69,6 @@ export async function setupNotificationChannels() {
       lightColor: colors.primary,
       sound: NOTIFICATION_SOUND,
     });
-    for (const id of LEGACY_CHANNEL_IDS) {
-      await Notifications.deleteNotificationChannelAsync(id);
-    }
   } catch (e) {
     console.warn('[notifications] Channel setup skipped:', e);
   }
@@ -131,7 +127,9 @@ export async function getExpoPushToken(): Promise<string | null> {
     const hasPermission = await requestNotificationPermission();
     if (!hasPermission) return null;
 
-    const tokenData = await Notifications.getExpoPushTokenAsync();
+    // projectId eksplisit: di build EAS standalone token terikat ke proyek EAS ini (app.json › extra.eas).
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
+    const tokenData = await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : undefined);
     return tokenData.data;
   } catch (err) {
     // Push dari server butuh Firebase (google-services.json) di build Android. Tanpa itu notifikasi

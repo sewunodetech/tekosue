@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs';
+
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 import { AndroidConfig, withAndroidStyles, type ConfigPlugin } from 'expo/config-plugins';
 
@@ -6,6 +8,12 @@ import { AndroidConfig, withAndroidStyles, type ConfigPlugin } from 'expo/config
 const passkeyDomain = process.env.EXPO_PUBLIC_PASSKEY_DOMAIN || 'www.tekosue.xyz';
 // Domain link undangan (https://<webDomain>/j/<kode>); sama dengan default di src/lib/env.ts.
 const webDomain = process.env.EXPO_PUBLIC_WEB_DOMAIN || passkeyDomain;
+
+// Push dari server (apps/api → Expo → FCM) butuh Firebase di build Android. Tanpa file ini
+// getExpoPushTokenAsync gagal, token tidak pernah terdaftar, dan HP hanya menerima notifikasi lokal
+// saat app terbuka. EAS: variabel lingkungan bertipe file GOOGLE_SERVICES_JSON; lokal: ./google-services.json.
+const googleServicesFile =
+  process.env.GOOGLE_SERVICES_JSON || (existsSync('./google-services.json') ? './google-services.json' : undefined);
 
 // App hanya mode terang. Beberapa ROM (MIUI/HyperOS) memaksa app terang jadi gelap saat HP
 // dalam mode gelap — termasuk splash. Matikan force dark di tema app dan splash.
@@ -38,6 +46,7 @@ export default ({ config }: ConfigContext): ExpoConfig =>
     },
     android: {
       ...config.android,
+      ...(googleServicesFile ? { googleServicesFile } : {}),
       // App Links: link undangan langsung membuka app (terverifikasi lewat /.well-known/assetlinks.json di webDomain).
       intentFilters: [
         {

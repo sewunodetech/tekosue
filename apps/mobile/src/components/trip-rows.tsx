@@ -10,7 +10,20 @@ import { Icon } from './ui/icon';
 import { Text } from './ui/text';
 
 /** Baris aktivitas di layar Trip (F07): ikon, judul, siapa/untuk siapa, nominal, tanda struk. */
-export function ActivityRow({ spend, href, fresh = false, meta }: { spend: Spend; href?: Href; fresh?: boolean; meta?: string }) {
+export function ActivityRow({
+  spend,
+  href,
+  fresh = false,
+  meta,
+  savingReceipt = false,
+}: {
+  spend: Spend;
+  href?: Href;
+  fresh?: boolean;
+  meta?: string;
+  /** Struk sedang dilampirkan di latar belakang (09 Pay → `attachReceipt`). */
+  savingReceipt?: boolean;
+}) {
   const body = (
     <>
       <View style={styles.iconTile}>
@@ -32,6 +45,13 @@ export function ActivityRow({ spend, href, fresh = false, meta }: { spend: Spend
             <Icon name="receipt" size={12} color={colors.primary} strokeWidth={2.4} />
             <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12 }} color={colors.primary}>
               Receipt
+            </Text>
+          </View>
+        ) : savingReceipt ? (
+          <View style={styles.metaRow}>
+            <PulseDot />
+            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12 }} color={colors.textMuted}>
+              Saving receipt
             </Text>
           </View>
         ) : (

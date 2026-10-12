@@ -31,8 +31,8 @@ export function useSession() {
   return ctx;
 }
 
-const PRF_STORAGE_KEY = 'tekosoe_prf_output';
-const CREDENTIAL_ID_KEY = 'tekosoe_credential_id';
+const PRF_STORAGE_KEY = 'tekosue_prf_output';
+const CREDENTIAL_ID_KEY = 'tekosue_credential_id';
 
 /**
  * FR-03: akun baru belum punya MON. api mengirim sedikit MON sekali per alamat (drip) supaya
