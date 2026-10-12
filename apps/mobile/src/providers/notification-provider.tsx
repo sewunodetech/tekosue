@@ -23,12 +23,15 @@ type NotificationContextType = {
   enabled: boolean;
   toggleNotifications: (val: boolean) => Promise<void>;
   notify: (payload: NotificationPayload) => Promise<void>;
+  /** Banner di dalam app saja, tanpa notifikasi OS (mis. konfirmasi "Nudge sent"). */
+  showInApp: (payload: NotificationPayload) => void;
 };
 
 const NotificationContext = createContext<NotificationContextType>({
   enabled: true,
   toggleNotifications: async () => {},
   notify: async () => {},
+  showInApp: () => {},
 });
 
 export function useNotifications() {
@@ -154,7 +157,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   };
 
   return (
-    <NotificationContext.Provider value={{ enabled, toggleNotifications, notify }}>
+    <NotificationContext.Provider value={{ enabled, toggleNotifications, notify, showInApp: showBanner }}>
       {children}
 
       {/* Floating In-App Toast Banner */}

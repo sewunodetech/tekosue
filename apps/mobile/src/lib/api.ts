@@ -133,6 +133,12 @@ export const api = {
 
   subscribePush: (account: LocalAccount, expoPushToken: string, platform: 'ios' | 'android') =>
     request('/api/push/subscribe', { method: 'POST', body: { expoPushToken, platform }, auth: account }),
+  /** S2 Waiting › Nudge: api mengirim push ke anggota lain (bukan ke HP pembayar). */
+  nudgeSpend: (account: LocalAccount, groupId: string, spendId: string) =>
+    request<{ recipients: number; sent: number }>(`/api/groups/${groupId}/spends/${spendId}/nudge`, {
+      method: 'POST',
+      auth: account,
+    }),
 
   // Struk (M7): kunci publik anggota, kunci trip terbungkus, unggah ciphertext lewat URL presigned.
   publishEncKey: (account: LocalAccount, encPublicKey: string) =>
