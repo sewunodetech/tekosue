@@ -59,7 +59,7 @@ Legend: ✅ done · 🟡 in progress · ⏳ not started
 ## Contract, indexer, api (30 Sep)
 
 - [x] GroupVault v1 (ADR 0005): signed invites, a settle-up that frozen AUSD accounts can't block, AUSD permit (join/deposit/payDebt in one transaction), `positionOf`. 26 Foundry tests. **Deployed** at `0x1467c9de54C1e4570AF062E80E860F94852BB7ee` (verified: `ausd()` = Agora AUSD).
-- [x] Envio indexer v3: 12 handlers, validated with `codegen` + `tsc`. **Hosted** (Docker, HyperSync, its own database): `isReady`, 17 events, data matches the contract.
+- [x] Envio indexer v3: 13 handlers (12 GroupVault events + AUSD transfers), validated with `codegen` + `tsc`. **Hosted** (Docker, HyperSync, its own database): `isReady`, 17 events, data matches the contract.
 - [x] api: ABI from `forge build`, `invite_code_hash` removed (migration 0002). **Deployed** (Docker), `/health` ok.
 - [x] Agora AUSD verified (address, 6 decimals, permit, faucet `requestFunds`).
 
@@ -100,13 +100,13 @@ Legend: ✅ done · 🟡 in progress · ⏳ not started
 
 ### P2 — Mera PRF
 
-- [ ] Simulated card (FR-16)
+- [x] Simulated card (FR-16): the card itself is labelled simulated; "Tap to pay" is a real `spend` from the pot and "Card history" lists the pot's real payments from Envio (12 Oct, ADR 0015)
 - [ ] Passkey-derived encryption key, trip key (FR-17)
 
 ### P3 — Alchemy (dropped, ADR 0014)
 
 - [x] Alchemy removed from the landing page "Built with" (6 Oct). Network fees stay covered by our MON drip.
-- [ ] 🟡 Push notifications from **Envio** instead of Alchemy webhooks (6 Oct, ADR 0014): approval requests, payments with your share, declined/disputed payments, settle-up results, and a daily "You still owe $X" reminder (ADR 0013). *Needs `FEATURE_PUSH=true` on the api and a native build (Expo Go on Android has no push). Not yet verified on a phone.*
+- [ ] 🟡 Push notifications from **Envio** instead of Alchemy webhooks (6 Oct, ADR 0014): approval requests, payments with your share, declined/disputed payments, settle-up results, and a daily "You still owe $X" reminder (ADR 0013). *Needs `FEATURE_PUSH=true` on the api and a native build (Expo Go on Android has no push). 12 Oct (ADR 0015): Firebase added (`GOOGLE_SERVICES_JSON` + FCM V1 key in EAS project `tekosue`), so the APK registers a push token; S2 "Nudge" goes through `POST /api/groups/:id/spends/:spendId/nudge` to the other members. APK: EAS build `6371e8ee` (`/get-app`). Remaining: verify on two phones with the app closed.*
 
 ## Deployments
 

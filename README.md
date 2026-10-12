@@ -112,8 +112,9 @@ The judge path through the app (each screen is a real route in `apps/mobile`):
 flowchart TD
     W[Welcome] --> S["Sign in<br/>🔑 one passkey prompt"] --> H[Home]
     H --> N["New trip<br/>end date + approval limit"] --> I[Share invite link]
-    I --> J["Friend joins<br/>deposit + safety net, one confirmation"]
-    J --> P[Pay from pot]
+    I --> J["Friend joins with a passkey<br/>agrees to the trip's safety net"]
+    J --> M["Add money to the pot"]
+    M --> P[Pay from pot]
     P --> Q{Above the<br/>approval limit?}
     Q -- no --> F[Paid instantly]
     Q -- yes --> R[Request approval] --> A[A friend approves<br/>on their phone] --> F
@@ -127,7 +128,8 @@ flowchart TD
 | --- | --- |
 | **Sign in** | One passkey prompt (Face ID, fingerprint or PIN). The passkey derives the account key on the device (Mera). |
 | **New trip / Invite** | Pick an end date and an approval limit, share a link. Friends join with one tap and one passkey confirmation. |
-| **Join + put in** | Choose a deposit and a **safety net** (the most the trip may pull from you at settle-up), in one confirmation. |
+| **Join** | "Join with Passkey" on the invite. The trip creator's **safety net** (the most the trip may pull from you at settle-up) is shown first; joining means you agree to it. One confirmation. |
+| **Add money** | Put dollars in the pot whenever you like, one confirmation (no separate "approve"). |
 | **Pay from pot** | Amount, who it was for, optional receipt photo. Above the limit → a friend approves on their phone. |
 | **Trip** | Live pot balance, activity feed, "who owes whom" preview, all read from the Envio indexer. |
 | **Settled** | Each member's invoice with Paid / Refunded / Due, a **Pay** button for debts, PDF export, and a QR code anyone can verify on the web. Someone who still owes sees "You still owe $X" and can't start or join a new trip until it's paid. |
@@ -174,7 +176,9 @@ sequenceDiagram
     R->>App: Passkey (Face ID / fingerprint / PIN)
     App->>V: createGroup(endDate, approvalLimit, safetyNet)
     W->>App: Opens invite link + passkey
-    App->>V: joinGroupWithPermit(inviteSig, deposit, safetyNet)<br/>one transaction, no "approve" step
+    App->>V: joinGroupWithPermit(inviteSig, safetyNet)<br/>one transaction, no "approve" step
+    W->>App: Add money
+    App->>V: depositWithPermit(amount)
     R->>App: Pay $42 dinner for everyone
     App->>V: spend(amount, participants, noteHash)
     V-->>E: events
@@ -247,7 +251,7 @@ Each sponsor has one clear job in the product, and every integration runs for re
 | Step | Contract call | Transaction |
 | --- | --- | --- |
 | Create a trip | `createGroup` | [`0x1636a212…983c`](https://testnet.monadvision.com/tx/0x1636a212570eb1cdf956f8440178f32c335c5cfc271905d15f8e257121de983c) |
-| Join + first deposit + safety net, one signature | `joinGroupWithPermit` | [`0x01b96530…69b3`](https://testnet.monadvision.com/tx/0x01b96530396393d99160076abf15fd46289b5bbe3116887415d2034c7f1169b3) |
+| Join + agree to the safety net, one signature | `joinGroupWithPermit` | [`0x01b96530…69b3`](https://testnet.monadvision.com/tx/0x01b96530396393d99160076abf15fd46289b5bbe3116887415d2034c7f1169b3) |
 | Add money to the pot | `depositWithPermit` | [`0x5b14838d…2cad`](https://testnet.monadvision.com/tx/0x5b14838d69ed7d1b0d6c181a69f58e80f79b82aa140ea67c38b8b14292022cad) |
 | Pay from the pot | `spend` | [`0x4ed570d5…a792`](https://testnet.monadvision.com/tx/0x4ed570d51aeaa6939c2695cc058d34b3d5cf8e14a92b9e8a40a53ab01ce6a792) |
 | Attach an encrypted receipt | `attachReceipt` | [`0x98988f1a…babd`](https://testnet.monadvision.com/tx/0x98988f1acf8e085cda6049608c6471c12da5538efb0ded4e28245e6153a7babd) |
@@ -264,9 +268,9 @@ flowchart LR
     classDef wip fill:#fff1e0,stroke:#d9822b,color:#321
 
     C["✅ <b>GroupVault</b> deployed + verified<br/>signed invites, permit flows, approvals,<br/>disputes, receipts, settle-up, debts & credits,<br/>unpaid debt blocks new trips<br/><i>28 Foundry tests incl. fuzzed invariants</i>"]:::done
-    I["✅ <b>Envio indexer</b> hosted<br/>12 handlers, 17 events,<br/>enough to rebuild every invoice"]:::done
-    A["✅ <b>API</b> deployed<br/>settle scheduler, MON drip, SIWE login,<br/>labels bound to on-chain hashes, invoices,<br/>push + daily debt reminders from Envio<br/><i>55 tests</i>"]:::done
-    M["✅ <b>Mobile app</b> (Android APK)<br/>Mera passkey sign-up + signing on real phones,<br/>every screen live on testnet, invoices with PDF + QR,<br/>invite deep links, feed, encrypted receipts,<br/>'You still owe' guard"]:::done
+    I["✅ <b>Envio indexer</b> hosted<br/>13 event handlers (12 GroupVault<br/>events + AUSD transfers),<br/>enough to rebuild every invoice"]:::done
+    A["✅ <b>API</b> deployed<br/>settle scheduler, MON drip, SIWE login,<br/>labels bound to on-chain hashes, invoices,<br/>push + daily debt reminders from Envio,<br/>Nudge for pending approvals<br/><i>58 tests</i>"]:::done
+    M["✅ <b>Mobile app</b> (Android APK)<br/>Mera passkey sign-up + signing on real phones,<br/>every screen live on testnet, invoices with PDF + QR,<br/>invite deep links, feed, encrypted receipts,<br/>card history, background push (Firebase),<br/>'You still owe' guard"]:::done
     W["✅ <b>Website</b> www.tekosue.xyz<br/>landing, download page, live invite pages,<br/>invoice verification, passkey domain files"]:::done
     P["🟠 <b>In progress</b><br/>iPhone build (needs Apple Team ID)"]:::wip
 
