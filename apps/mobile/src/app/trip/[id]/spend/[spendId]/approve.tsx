@@ -1,4 +1,4 @@
-import { Link, router, useLocalSearchParams } from 'expo-router';
+import { Link, Redirect, router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
 import { Teko } from '@/components/teko';
@@ -9,11 +9,13 @@ import { Text } from '@/components/ui/text';
 import { combine, QueryState } from '@/components/query-state';
 import { colors, fonts, palette } from '@/constants/theme';
 import type { Spend, Trip } from '@/data/types';
+import { viewerRole } from '@/features/spends/approvers';
 import { useApproveSpend } from '@/features/spends/useApproveSpend';
 import { useRejectSpend } from '@/features/spends/useRejectSpend';
 import { useSpend } from '@/features/spends/useSpend';
 import { useMarkSpendSeen } from '@/features/spends/useSpendReviews';
 import { useTrip } from '@/features/trips/useTrip';
+import { isLive } from '@/lib/env';
 import { money } from '@/lib/money';
 import { TxOverlay } from '@/tx/tx-overlay';
 import { useTx } from '@/tx/useTx';
@@ -25,7 +27,14 @@ export default function ApprovalScreen() {
   const { id, spendId } = useLocalSearchParams<{ id: string; spendId: string }>();
   return (
     <QueryState query={combine(useTrip(id), useSpend(spendId, id))} headerAction="close">
-      {([trip, spend]) => <ApprovalView trip={trip} spend={spend} />}
+      {([trip, spend]) =>
+        // Hanya yang dimintai yang melihat Approve/Decline; pembuat dan anggota lain melihat S2 Waiting.
+        isLive && spend.status === 'pending' && viewerRole(trip, spend) !== 'approver' ? (
+          <Redirect href={`/trip/${trip.id}/spend/${spend.id}/waiting`} />
+        ) : (
+          <ApprovalView trip={trip} spend={spend} />
+        )
+      }
     </QueryState>
   );
 }

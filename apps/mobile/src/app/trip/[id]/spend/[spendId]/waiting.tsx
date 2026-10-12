@@ -1,4 +1,4 @@
-import { Link, useLocalSearchParams } from 'expo-router';
+import { Link, router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
 import { PulseDot } from '@/components/decor';
@@ -12,6 +12,7 @@ import { Text } from '@/components/ui/text';
 import { combine, QueryState } from '@/components/query-state';
 import { colors, fonts, radius } from '@/constants/theme';
 import type { Spend, Trip } from '@/data/types';
+import { approversOf, viewerRole } from '@/features/spends/approvers';
 import { useNudgeSpend } from '@/features/spends/useNudgeSpend';
 import { useSeenBy } from '@/features/spends/useSpendReviews';
 import { useSpend } from '@/features/spends/useSpend';
@@ -35,11 +36,10 @@ export default function WaitingForApprovalScreen() {
 function WaitingView({ trip, spend }: { trip: Trip; spend: Spend }) {
   const { showInApp } = useNotifications();
   const nudge = useNudgeSpend(trip.id, spend.id);
-  // Kontrak membolehkan anggota mana pun selain pembayar menyetujui; yang ditanya = yang ikut menanggung.
-  // Kalau pembayar satu-satunya peserta, semua anggota lain yang ditanya (sama dengan api Nudge).
-  const others = trip.members.filter((m) => m.id !== spend.paidBy?.id);
-  const sharing = others.filter((m) => spend.shares.some((s) => s.member.id === m.id));
-  const approvers = sharing.length > 0 ? sharing : others;
+  // Yang dimintai = peserta selain pembayar (lihat approversOf). Tombol mengikuti peran yang melihat:
+  // pembuat → Nudge; yang dimintai → Review and approve; anggota lain → hanya melihat.
+  const approvers = approversOf(trip, spend);
+  const role = viewerRole(trip, spend);
   const seenBy = useSeenBy(trip.id, spend.id);
   const nudgeNames =
     approvers.length <= 2 ? approvers.map((a) => a.name).join(' and ') : `${approvers[0]!.name} and ${approvers.length - 1} others`;
@@ -47,29 +47,33 @@ function WaitingView({ trip, spend }: { trip: Trip; spend: Spend }) {
   return (
     <Screen
       footer={
-        <>
-          <Button
-            label={nudge.isPending ? 'Nudging…' : nudge.isSuccess ? `Nudge ${nudgeNames} again` : `Nudge ${nudgeNames}`}
-            disabled={nudge.isPending}
-            onPress={() =>
-              nudge.mutate(undefined, {
-                onSuccess: () =>
-                  showInApp({
-                    title: 'Nudge sent',
-                    body: `We reminded ${nudgeNames} to say yes to ${money(spend.amount)} for ${spend.title}.`,
-                  }),
-                onError: (error) =>
-                  showInApp({
-                    title: "Couldn't nudge right now",
-                    body: error instanceof Error ? error.message : 'Please try again in a moment.',
-                  }),
-              })
-            }
-          />
-          <Link href={`/trip/${trip.id}`} asChild>
-            <Button label="Cancel request" variant="ghost" />
-          </Link>
-        </>
+        role === 'asker' ? (
+          <>
+            <Button
+              label={nudge.isPending ? 'Nudging…' : nudge.isSuccess ? `Nudge ${nudgeNames} again` : `Nudge ${nudgeNames}`}
+              disabled={nudge.isPending}
+              onPress={() =>
+                nudge.mutate(undefined, {
+                  onSuccess: () =>
+                    showInApp({
+                      title: 'Nudge sent',
+                      body: `We reminded ${nudgeNames} to say yes to ${money(spend.amount)} for ${spend.title}.`,
+                    }),
+                  onError: (error) =>
+                    showInApp({
+                      title: "Couldn't nudge right now",
+                      body: error instanceof Error ? error.message : 'Please try again in a moment.',
+                    }),
+                })
+              }
+            />
+            <Link href={`/trip/${trip.id}`} asChild>
+              <Button label="Cancel request" variant="ghost" />
+            </Link>
+          </>
+        ) : role === 'approver' ? (
+          <Button label="Review and approve" onPress={() => router.push(`/trip/${trip.id}/spend/${spend.id}/approve`)} />
+        ) : undefined
       }>
       <ScreenHeader title="Waiting for a yes" />
 
@@ -90,7 +94,7 @@ function WaitingView({ trip, spend }: { trip: Trip; spend: Spend }) {
           <View style={[styles.round, { backgroundColor: colors.positiveBg }]}>
             <Icon name="check" size={16} color={colors.positive} strokeWidth={2.6} />
           </View>
-          <Text style={styles.name}>You asked</Text>
+          <Text style={styles.name}>{role === 'asker' ? 'You asked' : `${spend.paidBy.name} asked`}</Text>
           <Text variant="small" color={colors.textMuted} style={{ fontFamily: fonts.body }}>
             {isLive ? spend.when : 'Just now'}
           </Text>
