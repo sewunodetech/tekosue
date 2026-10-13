@@ -70,9 +70,9 @@ flowchart LR
 
 | Video | Length | What it shows | Link |
 | --- | --- | --- | --- |
-| **Product demo** | ~3 min | The real app on two Android phones: passkey sign-in, invite link, chip in, pay from the pot with a receipt, the other phone updating within seconds, automatic settle-up, the invoice, and the `GroupVault` contract on the Monad explorer. | _YouTube link_ |
+| **Product demo** | ~3 min | The real app on two Android phones: passkey sign-in, invite link, chip in, pay from the pot with a receipt, the other phone updating within seconds, automatic settle-up, the invoice, and the `GroupVault` contract on the Monad explorer. | [▶ Watch on YouTube](https://youtu.be/Va0lA2mHJLw) |
 | **Proof of work on Monad** | 43 s | The live website, the app sending a `spend()` transaction, the `GroupVault` contract on testnet.monadvision.com, and six real transactions (create, join, deposit, spend, receipt, settle) read straight from Monad testnet RPC, all `success`. | [▶ Watch on X](https://x.com/tekosuexyz/status/2109873295386722509) |
-| **30-second ad** | 30 s | The pitch in 30 seconds, for social. | _X link_ |
+| **30-second ad** | 30 s | The pitch in 30 seconds, for social. | [▶ Watch on X](https://x.com/tekosuexyz/status/2109491734359261189) |
 
 The proof-of-work transactions are on the current `GroupVault` ([`0x02Fb…bCE0`](https://testnet.monadvision.com/address/0x02Fb964B6b4470C14D61738EC0a296fa9F2dbCE0)) and anyone can open them on the explorer:
 [createGroup](https://testnet.monadvision.com/tx/0xa84a2d83961434afb81703a31747412e8c54e97eda86fc1d394f67d7e4029627) ·
