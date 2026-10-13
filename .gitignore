@@ -40,3 +40,6 @@ packages/indexer/envio-env.d.ts
 Thumbs.db
 *.log
 .vercel
+
+# Social media drafts and exports (X posts, HTML sources, renders) stay local
+social/
