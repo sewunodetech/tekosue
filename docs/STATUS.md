@@ -2,7 +2,7 @@
 
 Maintained by the team and agents. Tick an item only once it's done **and** verified on testnet. Add notes under each phase.
 
-Legend: ✅ done · 🟡 in progress · ⏳ not started
+Legend: ✅ done · 🟡 in progress · ⏳ not started · ⏸️ deferred
 
 ## Timeline
 
@@ -11,10 +11,10 @@ Legend: ✅ done · 🟡 in progress · ⏳ not started
 | 27–29 Sep | Mera spike (passkey + PRF on iOS/Android), AUSD faucet, gas test; contract v0 + unit tests | One AUSD transaction from a Mera account without the user holding MON | 🟡 contract, faucet and gas drip done; Mera still to verify in a release build on phones |
 | 30 Sep – 2 Oct | Complete contract + fuzz tests, testnet deployment, Envio indexer | Every event indexed, indexer balances = contract | ✅ GroupVault v1 deployed, indexer hosted and matching the contract |
 | 3–6 Oct | App P0: onboarding, trips, deposits, spending, settle-up | Demo scenario end to end on testnet | 🟡 every P0 screen runs live on testnet; new contract (ADR 0013), live web (ADR 0012) and notifications (ADR 0014) deployed 6 Oct; the full demo on phones waits on the new APK |
-| 7–8 Oct | Real-time feed (P1); start encryption (P2) if safe | Feed updates without a manual refresh | ⏳ |
+| 7–8 Oct | Real-time feed (P1); start encryption (P2) if safe | Feed updates without a manual refresh | ✅ near real-time: trip, spend and activity screens poll Envio every 4–5 s (`refetchInterval`), verified across two phones (11 Oct); push-based subscriptions not built. Encrypted single-photo receipts shipped |
 | 9–10 Oct | E2E testing, UX testing with non-crypto users, Slither | Every P0 test passes | ⏳ |
-| 11 Oct | Demo video, README, write-up | Final | ⏳ |
-| 12 Oct | Submit | Submission complete | ⏳ |
+| 11 Oct | Demo video, README, write-up | Final | ✅ demo video (real app footage), 30s ad, thumbnail, README refreshed (`video/demo`, Remotion) |
+| 12 Oct | Submit | Submission complete | 🟡 progress update posted; final submission on www.tekosue.xyz |
 
 ## Repo setup
 
@@ -32,10 +32,10 @@ Legend: ✅ done · 🟡 in progress · ⏳ not started
 - [x] UI for every Final UI screen + the Teko mascot + design system (demo data), branch `mobile-dev`
 - [ ] M0 Setup: merge to `main`, Home at `/trips`, `eas.json`, dev build on 2 phones, icons & splash. *Home at `/trips` ✅; app icon, adaptive icon, splash, favicon + web/OG icons from `tekosue-mark.svg` ✅ (`scripts/brand-assets.mjs`); remaining: merge, `eas.json`, dev build*
 - [x] M1 Data layer: `src/data` (demo) + `src/features/*` hooks, loading/error states through `QueryState`. Every screen is decoupled from demo data
-- [ ] M2 Mera spike: passkey + sign one transaction in a dev build, ADR with the result. *ADR 0003 + code exist. 4 Oct: passkey + PRF verified in a dev build on Android (Xiaomi, MIUI) with rpId `tekosoe.mulalabs.biz.id` — `.well-known` served from the VPS, signing back in with the same passkey opens the same account (profile + balance). Remaining: sign a transaction, iOS (needs Apple Team ID in AASA), second phone*
+- [ ] M2 Mera spike: passkey + sign one transaction in a dev build, ADR with the result. *ADR 0003 + code exist. 4 Oct: passkey + PRF verified in a dev build on Android (Xiaomi, MIUI) with rpId `tekosoe.mulalabs.biz.id` (since moved to `www.tekosue.xyz`, ADR 0011) — `.well-known` served from the VPS, signing back in with the same passkey opens the same account (profile + balance). Remaining: sign a transaction, iOS (needs Apple Team ID in AASA), second phone*
 - [x] M3 Session & account: Signer, SessionProvider, route gate, real passkey prompt. *Signer, SessionProvider and route gate done. SecureStore blocker resolved (using `requireAuthentication: true`). 4 Oct: 02 Sign in now has an explicit "Create account with Passkey" (new passkey) next to "I already have an account" (existing passkey); sign up no longer depends on a `NoCredentials` fallback, which iOS never returns.*
 - [x] Onboarding + first-time tour (4 Oct, outside the Final UI canvas, built from the existing design system): O1–O3 slides on first launch only (O1 = 01 Welcome), 02 Sign in is O4; T1–T6 tour over 03 once per account per device, replay from Help and feedback on P2. Seen flags live on the device only (`lib/device-flags.ts`). Verified in the web demo; still to check on Android/iOS (spotlight positions under edge-to-edge).
-- [x] Invite links on `tekosoe.mulalabs.biz.id` (4 Oct): app now builds `https://tekosoe.mulalabs.biz.id/j/<code>` (was `tekosoe.xyz`, EAS had no `EXPO_PUBLIC_WEB_DOMAIN`), Android App Links intent filter for `/j/*`, app route `j/[code]` → 05 Invite, signed-out invitees go through 02 Sign in and back to Join. Web `/j/<code>` shows the real trip name (public api meta) + Android APK link. *Web live on the VPS (Docker + Traefik, `web` service at 1136f59; redeploy: `git pull` in `/home/ubuntu/docker/tekosoe-web`, then `docker compose up -d --build web` in `tekosoe-main`). Needs a new APK for the intent filter. iOS universal links/passkey wait on the Apple Team ID in the AASA.*
+- [x] Invite links on `tekosoe.mulalabs.biz.id` (4 Oct; now on `www.tekosue.xyz`, see Web › Rebrand): app now builds `https://tekosoe.mulalabs.biz.id/j/<code>` (was `tekosoe.xyz`, EAS had no `EXPO_PUBLIC_WEB_DOMAIN`), Android App Links intent filter for `/j/*`, app route `j/[code]` → 05 Invite, signed-out invitees go through 02 Sign in and back to Join. Web `/j/<code>` shows the real trip name (public api meta) + Android APK link. *Web live on the VPS (Docker + Traefik, `web` service at 1136f59; redeploy: `git pull` in `/home/ubuntu/docker/tekosoe-web`, then `docker compose up -d --build web` in `tekosoe-main`). Needs a new APK for the intent filter. iOS universal links/passkey wait on the Apple Team ID in the AASA.*
 - [x] One-tap join ([ADR 0009](decisions/0009-join-without-deposit.md), 4 Oct): "Join with Passkey" on 05 joins right away with no deposit and goes back to Home; the creator picks the safety net for everyone on 04 New trip; 06 Join + put in retired. *Needs a new APK; verify a real join on testnet.*
 - [x] Reopening the app with a saved account goes straight to a passkey prompt (Unlock, 4 Oct), no more onboarding/sign-in screen. The PRF is still only cached with strong biometrics; without it (PIN, "weak" face unlock) or after a cancelled prompt, Unlock asks for the passkey. *Needs a new APK; verify on the Xiaomi.*
 - [x] Receipt keys spread in the background (4 Oct): Home and 07 Trip run `syncReceiptKeys` (publish this phone's key; if it holds the trip key, wrap it for members who lack one). Before, keys only spread when someone added/opened a receipt, so a member without a copy got "receipt not saved". *Holders need the new APK for this to run.*
@@ -49,6 +49,14 @@ Legend: ✅ done · 🟡 in progress · ⏳ not started
 - [ ] M11 P1/P2: real-time feed, push, simulated card, PRF key. *Activity screen (`/activity`, ADR 0007) done in demo + live from Envio; Top up / Cash out rows wait for an indexer codegen + redeploy (`BalanceActivity`)*
 - [x] P1 Set up profile + P2 Profile designed on the Final UI canvas (28 Sep)
 - [ ] M12 Profile & account: P1 screen + P2 tab, saved to `profiles` through the api, Sign out. *P1 UI + P2 tab + gate + Sign out + local save done; api `profiles` wired up in live mode (not yet tested live)*
+
+## Submission scope (12 Oct)
+
+- Final public domain: **`www.tekosue.xyz`** (web, invite links, passkey rpId, invoice QR). `api.` / `graphql.mulalabs.biz.id` stay as backend hosts.
+- ✅ Tested end to end on two Android phones (11 Oct): members collaborate on one trip and each payment shows up on the other phone within seconds (Envio polling every 4–5 s).
+- ⏸️ Deferred by priority: subscription/push-driven feed (polling covers FR-14 for the demo); multi-page and PDF receipts — single-photo encrypted receipts work.
+- ⏸️ iOS: passkey sign-in waits on the Apple Team ID in the AASA (W-1). Android is the demo platform.
+- Pitch assets in `video/demo` (Remotion): demo video, 30-second ad (`TekosueAd30`, ElevenLabs voice-over via `scripts/make-ad-audio.py`, key in `.env.local`), thumbnail.
 
 ## Contract, indexer, api (6 Oct)
 

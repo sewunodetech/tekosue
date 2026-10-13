@@ -8,6 +8,7 @@
 </p>
 
 <p align="center">
+  <a href="#-demo-videos">Demo videos</a> ·
   <a href="#-who-its-for">Who it's for</a> ·
   <a href="#-try-it">Try it</a> ·
   <a href="#-how-it-works">How it works</a> ·
@@ -62,6 +63,25 @@ flowchart LR
 | Someone holds your money | n/a | Yes | Yes | **No.** The contract holds it, your key stays on your phone |
 
 > **Pitch video:** [youtu.be/2ba0CKPJkk8](https://youtu.be/2ba0CKPJkk8) · **Product demo:** [youtu.be/Va0lA2mHJLw](https://youtu.be/Va0lA2mHJLw) · **Website:** [www.tekosue.xyz](https://www.tekosue.xyz) · **Android APK:** [get the app](https://www.tekosue.xyz/get-app)
+
+---
+
+## 🎬 Demo videos
+
+| Video | Length | What it shows | Link |
+| --- | --- | --- | --- |
+| **Product demo** | ~3 min | The real app on two Android phones: passkey sign-in, invite link, chip in, pay from the pot with a receipt, the other phone updating within seconds, automatic settle-up, the invoice, and the `GroupVault` contract on the Monad explorer. | _YouTube link_ |
+| **Proof of work on Monad** | 43 s | The live website, the app sending a `spend()` transaction, the `GroupVault` contract on testnet.monadvision.com, and six real transactions (create, join, deposit, spend, receipt, settle) read straight from Monad testnet RPC, all `success`. | _YouTube / X link_ |
+| **30-second ad** | 30 s | The pitch in 30 seconds, for social. | _X link_ |
+
+The proof-of-work transactions are on the current `GroupVault` ([`0x02Fb…bCE0`](https://testnet.monadvision.com/address/0x02Fb964B6b4470C14D61738EC0a296fa9F2dbCE0)) and anyone can open them on the explorer:
+[createGroup](https://testnet.monadvision.com/tx/0xa84a2d83961434afb81703a31747412e8c54e97eda86fc1d394f67d7e4029627) ·
+[joinGroupWithPermit](https://testnet.monadvision.com/tx/0xd0ed364d2abe81ba0b9462a6b0b948d56473731a53b4942c118451962f4468d4) ·
+[depositWithPermit](https://testnet.monadvision.com/tx/0xe6ded07ac3fb937a225c91f44763dd95274eea43bf14cf20bb442e560d824b9d) ·
+[spend](https://testnet.monadvision.com/tx/0x21cc3fea4c31c92d62868c089683678bfe97f20682a42003b317279598b81c17) ·
+[attachReceipt](https://testnet.monadvision.com/tx/0xa820161d4119d0f086ff598834d54754d5aacea78eb1b866382716b2c0524084) ·
+[settle](https://testnet.monadvision.com/tx/0x83186b88b30b11267f3b57c20e4021ed5ac069f57707526ceb00d4e2e9e06aae).
+The videos are built with Remotion in [`video/demo`](video/demo).
 
 ---
 
@@ -270,7 +290,7 @@ flowchart LR
     C["✅ <b>GroupVault</b> deployed + verified<br/>signed invites, permit flows, approvals,<br/>disputes, receipts, settle-up, debts & credits,<br/>unpaid debt blocks new trips<br/><i>28 Foundry tests incl. fuzzed invariants</i>"]:::done
     I["✅ <b>Envio indexer</b> hosted<br/>13 event handlers (12 GroupVault<br/>events + AUSD transfers),<br/>enough to rebuild every invoice"]:::done
     A["✅ <b>API</b> deployed<br/>settle scheduler, MON drip, SIWE login,<br/>labels bound to on-chain hashes, invoices,<br/>push + daily debt reminders from Envio,<br/>Nudge for pending approvals<br/><i>61 tests</i>"]:::done
-    M["✅ <b>Mobile app</b> (Android APK)<br/>Mera passkey sign-up + signing on real phones,<br/>every screen live on testnet, invoices with PDF + QR,<br/>invite deep links, feed, encrypted receipts,<br/>card history, background push (Firebase),<br/>'You still owe' guard"]:::done
+    M["✅ <b>Mobile app</b> (Android APK)<br/>Mera passkey sign-up + signing on real phones,<br/>every screen live on testnet, invoices with PDF + QR,<br/>invite deep links, feed, encrypted receipts,<br/>card history, background push (Firebase),<br/>'You still owe' guard,<br/><i>tested end to end on two phones:<br/>payments show on the other phone in seconds</i>"]:::done
     W["✅ <b>Website</b> www.tekosue.xyz<br/>landing, download page, live invite pages,<br/>invoice verification, passkey domain files"]:::done
     P["🟠 <b>In progress</b><br/>iPhone build (needs Apple Team ID)"]:::wip
 
@@ -447,6 +467,23 @@ flowchart LR
 | <img src="https://github.com/Dapoodap.png" width="48" alt="" /> | **MasDapa** · [@Dapoodap](https://github.com/Dapoodap) | The backend API: auth, gas drip, settle-up scheduler, profiles, receipts, push |
 
 Full history: [contributors](https://github.com/sewunodetech/tekosue/graphs/contributors).
+
+## 🙏 Acknowledgements and third-party code
+
+Tekosue is built on open-source software and sponsor SDKs. We did not copy code from other projects: everything below is used as a dependency, each under its own license (see the `package.json` files).
+
+| Area | What we use |
+| --- | --- |
+| Sponsors | [Monad](https://monad.xyz) testnet · [Agora AUSD](https://docs.agora.finance) · [Mera](https://www.npmjs.com/package/@category-labs/mera) (`@category-labs/mera`) passkey accounts · [Envio HyperIndex](https://envio.dev) |
+| Contract | [OpenZeppelin Contracts](https://github.com/OpenZeppelin/openzeppelin-contracts) (`SafeERC20`, `IERC20Permit`, `ReentrancyGuard`, `ECDSA`), [Foundry](https://getfoundry.sh) + [forge-std](https://github.com/foundry-rs/forge-std), [Slither](https://github.com/crytic/slither) |
+| Mobile | [Expo](https://expo.dev) + Expo Router, [React Native](https://reactnative.dev), [react-native-passkey](https://github.com/f-23/react-native-passkey), [viem](https://viem.sh), [TanStack Query](https://tanstack.com/query), [React Hook Form](https://react-hook-form.com), [zod](https://zod.dev), [@noble/ciphers, curves, hashes](https://paulmillr.com/noble/), Reanimated, react-native-svg |
+| Web | [Next.js](https://nextjs.org), [Tailwind CSS](https://tailwindcss.com), [three.js](https://threejs.org) + [React Three Fiber / drei](https://github.com/pmndrs/react-three-fiber), [Lucide](https://lucide.dev) icons, `qrcode` |
+| API | [Express](https://expressjs.com), [Drizzle ORM](https://orm.drizzle.team), `pg` on [Neon](https://neon.tech) Postgres, [Hasura](https://hasura.io) (Envio's GraphQL), `jose`, `helmet`, `pino`, AWS SDK for S3-compatible receipt storage |
+| Tooling | npm workspaces, [Turborepo](https://turbo.build), TypeScript, Vitest, ESLint, fast-check |
+| Videos | [Remotion](https://remotion.dev) (`video/demo`), [ElevenLabs](https://elevenlabs.io) voice-over for the ad and proof-of-work clips, music and sound effects generated in code (`video/demo/scripts/make-ad-audio.py`) |
+| Fonts | Bricolage Grotesque, Manrope, Inter, JetBrains Mono, Caveat via Google Fonts (SIL Open Font License) |
+
+The Teko mascot, the app design and all product code are our own work from the hackathon period.
 
 ## 🤖 Use of AI tools
 
