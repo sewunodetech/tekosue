@@ -1,0 +1,9 @@
+node_modules
+out
+# Raw footage and rendered/generated media stay local (never pushed)
+public/footage
+public/audio
+*.mp4
+*.mov
+*.wav
+*.mp3

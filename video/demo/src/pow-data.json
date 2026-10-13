@@ -1,0 +1,152 @@
+{
+  "chainId": 10143,
+  "vault": "0x02Fb964B6b4470C14D61738EC0a296fa9F2dbCE0",
+  "vaultCodeBytes": 13822,
+  "latestBlock": 70589600,
+  "fetchedAt": "2026-10-13 04:39 UTC",
+  "txs": [
+    {
+      "label": "Create a trip",
+      "method": "createGroup",
+      "hash": "0x8faaf19c87c306a9cef5d6a11e21f089ebb3dc5829b2b21c4d5dddd3936f5962",
+      "block": 67222630,
+      "status": "success",
+      "to": "0x1467c9de54c1e4570af062e80e860f94852bb7ee",
+      "gasUsed": 264629,
+      "logs": 2,
+      "time": "2026-10-01 09:34 UTC"
+    },
+    {
+      "label": "Join + deposit, one signature",
+      "method": "joinGroupWithPermit",
+      "hash": "0x29472de8eca137ba15b599a4e8d771fd3e02eb3df82626535d2d17ebf4519db2",
+      "block": 66925603,
+      "status": "success",
+      "to": "0x1467c9de54c1e4570af062e80e860f94852bb7ee",
+      "gasUsed": 344631,
+      "logs": 4,
+      "time": "2026-09-30 08:37 UTC"
+    },
+    {
+      "label": "Add money to the pot",
+      "method": "depositWithPermit",
+      "hash": "0xf5b3d0d9b697aadb260a6afa8689ddf6acaf5a58e86aafc6ee69c21fdf9f4bc6",
+      "block": 67033325,
+      "status": "success",
+      "to": "0x1467c9de54c1e4570af062e80e860f94852bb7ee",
+      "gasUsed": 159386,
+      "logs": 3,
+      "time": "2026-09-30 17:40 UTC"
+    },
+    {
+      "label": "Pay from the pot",
+      "method": "spend",
+      "hash": "0x388389f500143088cabd228325bd0911cc593214ac9158b8dc248e9ee56dbe15",
+      "block": 67234787,
+      "status": "success",
+      "to": "0x1467c9de54c1e4570af062e80e860f94852bb7ee",
+      "gasUsed": 325495,
+      "logs": 2,
+      "time": "2026-10-01 10:35 UTC"
+    },
+    {
+      "label": "A friend approves",
+      "method": "approveSpend",
+      "hash": "0x5e44d659130939566f6b3e06e0fbb4aa554d8222f56616ad1f37981f8bdf7812",
+      "block": 66925626,
+      "status": "success",
+      "to": "0x1467c9de54c1e4570af062e80e860f94852bb7ee",
+      "gasUsed": 179402,
+      "logs": 2,
+      "time": "2026-09-30 08:37 UTC"
+    },
+    {
+      "label": "The trip settles itself",
+      "method": "settle",
+      "hash": "0x46c58b52fe57d92fbc650d057cef1026d7a5b4dcf122edf237f1b4ef60681ec9",
+      "block": 67395647,
+      "status": "success",
+      "to": "0x1467c9de54c1e4570af062e80e860f94852bb7ee",
+      "gasUsed": 162913,
+      "logs": 3,
+      "time": "2026-10-02 00:05 UTC"
+    },
+    {
+      "label": "Pay a remaining bill",
+      "method": "payDebtWithPermit",
+      "hash": "0x7cae1e5f89413868dc432b8566526adcf7939564d9dd27fb5e457c1de865483d",
+      "block": 66926347,
+      "status": "success",
+      "to": "0x1467c9de54c1e4570af062e80e860f94852bb7ee",
+      "gasUsed": 228080,
+      "logs": 5,
+      "time": "2026-09-30 08:41 UTC"
+    }
+  ],
+  "current": [
+    {
+      "label": "Create a trip",
+      "event": "GroupCreated",
+      "hash": "0xa84a2d83961434afb81703a31747412e8c54e97eda86fc1d394f67d7e4029627",
+      "block": 70108207,
+      "status": "success",
+      "gasUsed": 262103,
+      "time": "2026-10-11 12:12 UTC"
+    },
+    {
+      "label": "Join with a passkey",
+      "event": "MemberJoined",
+      "hash": "0xd0ed364d2abe81ba0b9462a6b0b948d56473731a53b4942c118451962f4468d4",
+      "block": 70318491,
+      "status": "success",
+      "gasUsed": 258338,
+      "time": "2026-10-12 05:50 UTC"
+    },
+    {
+      "label": "Chip in",
+      "event": "Deposited",
+      "hash": "0xe6ded07ac3fb937a225c91f44763dd95274eea43bf14cf20bb442e560d824b9d",
+      "block": 70352704,
+      "status": "success",
+      "gasUsed": 159419,
+      "time": "2026-10-12 08:42 UTC"
+    },
+    {
+      "label": "Pay from the pot",
+      "event": "SpendExecuted",
+      "hash": "0x21cc3fea4c31c92d62868c089683678bfe97f20682a42003b317279598b81c17",
+      "block": 70355509,
+      "status": "success",
+      "gasUsed": 222275,
+      "time": "2026-10-12 08:57 UTC"
+    },
+    {
+      "label": "Encrypted receipt attached",
+      "event": "ReceiptAttached",
+      "hash": "0xa820161d4119d0f086ff598834d54754d5aacea78eb1b866382716b2c0524084",
+      "block": 70109657,
+      "status": "success",
+      "gasUsed": 49932,
+      "time": "2026-10-11 12:19 UTC"
+    },
+    {
+      "label": "The trip settles itself",
+      "event": "Settled",
+      "hash": "0x83186b88b30b11267f3b57c20e4021ed5ac069f57707526ceb00d4e2e9e06aae",
+      "block": 69053145,
+      "status": "success",
+      "gasUsed": 287233,
+      "time": "2026-10-07 19:26 UTC"
+    },
+    {
+      "label": "Refund at settle-up",
+      "event": "Refunded",
+      "hash": "0x83186b88b30b11267f3b57c20e4021ed5ac069f57707526ceb00d4e2e9e06aae",
+      "block": 69053145,
+      "status": "success",
+      "gasUsed": 287233,
+      "time": "2026-10-07 19:26 UTC"
+    }
+  ],
+  "indexedEvents": 47
+}

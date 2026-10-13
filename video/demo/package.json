@@ -1,0 +1,24 @@
+{
+  "name": "tekosue-demo",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render TekosueDemo out/tekosue-demo.mp4",
+    "still": "remotion still",
+    "footage": "mkdir -p public/footage && for i in 1 2 3 4 5; do ln -f \"../phase $i.mp4\" public/footage/phase$i.mp4; done",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.525",
+    "@remotion/google-fonts": "4.0.525",
+    "@remotion/transitions": "4.0.525",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "remotion": "4.0.525"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "typescript": "^5"
+  }
+}
