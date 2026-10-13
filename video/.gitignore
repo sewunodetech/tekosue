@@ -1,0 +1,4 @@
+# Raw recordings and backups stay local
+*.mp4
+*.mov
+.orig/
