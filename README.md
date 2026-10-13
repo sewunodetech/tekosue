@@ -71,7 +71,7 @@ flowchart LR
 | Video | Length | What it shows | Link |
 | --- | --- | --- | --- |
 | **Product demo** | ~3 min | The real app on two Android phones: passkey sign-in, invite link, chip in, pay from the pot with a receipt, the other phone updating within seconds, automatic settle-up, the invoice, and the `GroupVault` contract on the Monad explorer. | _YouTube link_ |
-| **Proof of work on Monad** | 43 s | The live website, the app sending a `spend()` transaction, the `GroupVault` contract on testnet.monadvision.com, and six real transactions (create, join, deposit, spend, receipt, settle) read straight from Monad testnet RPC, all `success`. | _YouTube / X link_ |
+| **Proof of work on Monad** | 43 s | The live website, the app sending a `spend()` transaction, the `GroupVault` contract on testnet.monadvision.com, and six real transactions (create, join, deposit, spend, receipt, settle) read straight from Monad testnet RPC, all `success`. | [▶ Watch on X](https://x.com/tekosuexyz/status/2109873295386722509) |
 | **30-second ad** | 30 s | The pitch in 30 seconds, for social. | _X link_ |
 
 The proof-of-work transactions are on the current `GroupVault` ([`0x02Fb…bCE0`](https://testnet.monadvision.com/address/0x02Fb964B6b4470C14D61738EC0a296fa9F2dbCE0)) and anyone can open them on the explorer:
@@ -81,7 +81,7 @@ The proof-of-work transactions are on the current `GroupVault` ([`0x02Fb…bCE0`
 [spend](https://testnet.monadvision.com/tx/0x21cc3fea4c31c92d62868c089683678bfe97f20682a42003b317279598b81c17) ·
 [attachReceipt](https://testnet.monadvision.com/tx/0xa820161d4119d0f086ff598834d54754d5aacea78eb1b866382716b2c0524084) ·
 [settle](https://testnet.monadvision.com/tx/0x83186b88b30b11267f3b57c20e4021ed5ac069f57707526ceb00d4e2e9e06aae).
-The videos are built with Remotion in [`video/demo`](video/demo).
+The videos are built with Remotion in [`video/demo`](video/demo). Follow along on X: [@tekosuexyz](https://x.com/tekosuexyz).
 
 ---
 
